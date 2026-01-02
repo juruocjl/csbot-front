@@ -141,13 +141,15 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { authAPI, commonAPI, type MatchHistoryResponse, type PlayerBase } from '../api'
+import { commonAPI, type MatchHistoryResponse, type PlayerBase } from '../api'
 import { ElMessage } from 'element-plus'
 import { watchDebounced } from '@vueuse/core'
+import { getCachedUserInfo } from '../router'
 import RankBadge from '../components/RankBadge.vue'
 
 const route = useRoute()
 const router = useRouter()
+
 
 const loading = ref<boolean>(false)
 const error = ref<string | null>(null)
@@ -160,20 +162,23 @@ const currentPage = ref<number>(Number(route.query.page) || 1)
 const pageSize = ref<number>(20)
 
 onMounted(async () => {
-  // 如果 URL 中没有 steamId，获取当前用户信息后使用用户的 steamId
+  // 如果 URL 中没有 steamId，使用缓存的用户信息中的 steamId
   if (!querySteamId.value) {
-    try {
-      const userInfo = await authAPI.getInfo()
-      if (userInfo.steamId) {
-        querySteamId.value = userInfo.steamId
-      }
-    } catch (err) {
-      console.error('获取用户信息失败:', err)
+    const user = getCachedUserInfo()
+    if (user?.steamId) {
+      querySteamId.value = user.steamId
+      // 更新 URL，触发查询
+      await router.push({
+        path: '/history',
+        query: {
+          steamId: querySteamId.value,
+          timeType: queryTimeType.value,
+          page: 1
+        }
+      })
     }
-  }
-  
-  // 如果有 steamId，获取玩家基本信息
-  if (querySteamId.value) {
+  } else {
+    // URL 中已经有 steamId，直接获取玩家信息和历史记录
     try {
       playerInfo.value = await commonAPI.getPlayerBase(querySteamId.value)
     } catch (err) {
@@ -181,8 +186,8 @@ onMounted(async () => {
       playerInfo.value = null
     }
     
-    // 自动加载历史记录
-    queryHistory()
+    // 加载历史记录
+    await loadHistoryData()
   }
 })
 
@@ -241,29 +246,9 @@ const scoreClass = (playerTeam: number, winTeam: number, scoreTeam: number): str
   return ''
 }
 
-const queryHistory = async (resetPage: boolean = false): Promise<void> => {
-  if (!querySteamId.value.trim()) {
-    ElMessage.error('请输入 Steam ID')
-    return
-  }
-
+const loadHistoryData = async (): Promise<void> => {
   loading.value = true
   error.value = null
-  
-  if (resetPage) {
-    currentPage.value = 1
-  }
-
-  // 更新URL参数
-  await router.push({
-    path: '/history',
-    query: {
-      steamId: querySteamId.value.trim(),
-      timeType: queryTimeType.value,
-      page: currentPage.value
-    }
-  })
-
   try {
     const response = await commonAPI.getMatchHistory({
       steamId: querySteamId.value.trim(),
@@ -279,10 +264,29 @@ const queryHistory = async (resetPage: boolean = false): Promise<void> => {
   }
 }
 
+const queryHistory = async (resetPage: boolean = false): Promise<void> => {
+  if (!querySteamId.value.trim()) {
+    ElMessage.error('请输入 Steam ID')
+    return
+  }
+
+  if (resetPage) {
+    currentPage.value = 1
+  }
+
+  // 只更新URL参数，由 route.query 监听触发实际查询
+  await router.push({
+    path: '/history',
+    query: {
+      steamId: querySteamId.value.trim(),
+      timeType: queryTimeType.value,
+      page: currentPage.value
+    }
+  })
+}
+
 const onPageChange = async (page: number): Promise<void> => {
-  currentPage.value = page
-  
-  // 更新URL参数
+  // 更新URL参数，由 route.query 监听触发查询
   await router.push({
     path: '/history',
     query: {
@@ -291,8 +295,6 @@ const onPageChange = async (page: number): Promise<void> => {
       page
     }
   })
-
-  await queryHistory()
 }
 
 // 监听 Steam ID 改变，获取玩家信息
@@ -305,21 +307,22 @@ watchDebounced(querySteamId, async (newSteamId) => {
       playerInfo.value = null
     }
   }
-}, { debounce: 500 })
+}, { debounce: 100 })
 
 // 监听 Steam ID 和 时间类型的变化自动查询
 watchDebounced([querySteamId, queryTimeType], () => {
-  currentPage.value = 1
-  queryHistory()
-}, { debounce: 500 })
+  queryHistory(true)
+}, { debounce: 100 })
 
-// 监听路由参数变化
-watch(() => route.query, (newQuery) => {
+// 监听路由参数变化，执行实际的数据查询
+watch(() => route.query, async (newQuery) => {
   if (newQuery.steamId) {
     querySteamId.value = newQuery.steamId as string
-    queryTimeType.value = (newQuery.timeType as string) || ''
+    queryTimeType.value = (newQuery.timeType as string) || '全部'
     currentPage.value = Number(newQuery.page) || 1
-    queryHistory()
+    
+    // 加载历史记录
+    await loadHistoryData()
   }
 }, { deep: true })</script>
 

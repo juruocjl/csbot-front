@@ -4,12 +4,21 @@ import Data from '../views/Data.vue'
 import Login from '../views/Login.vue'
 import MatchDetail from '../views/MatchDetail.vue'
 import MatchHistory from '../views/MatchHistory.vue'
-import { authAPI } from '../api'
+import { authAPI, type UserInfo } from '../api'
 
 declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean
   }
+}
+
+// 全局缓存用户信息，避免重复调用 getInfo
+let cachedUserInfo: UserInfo | null = null
+let userInfoPromise: Promise<UserInfo> | null = null
+
+export const getCachedUserInfo = (): UserInfo | null => cachedUserInfo
+export const setUserInfoPromise = (promise: Promise<UserInfo>) => {
+  userInfoPromise = promise
 }
 
 const routes: RouteRecordRaw[] = [
@@ -70,13 +79,19 @@ router.beforeEach(async (to, _from, next: NavigationGuardNext) => {
     return
   }
 
-  // 检查 token 是否有效
+  // 检查 token 是否有效，并缓存用户信息
   try {
-    await authAPI.getInfo()
+    // 如果还没有发起请求，就发起一个，之后就用缓存的结果
+    if (!userInfoPromise) {
+      userInfoPromise = authAPI.getInfo()
+    }
+    cachedUserInfo = await userInfoPromise
     next()
   } catch (error) {
-    // token 无效，清除并跳转到登录页
+    // token 无效，清除缓存并跳转到登录页
     localStorage.removeItem('token')
+    userInfoPromise = null
+    cachedUserInfo = null
     next({
       path: '/login',
       query: { redirect: to.fullPath }

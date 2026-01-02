@@ -49,10 +49,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History } from 'lucide-vue-next'
-import { authAPI, type UserInfo } from './api'
+import { type UserInfo } from './api'
+import { getCachedUserInfo } from './router'
 
 const route = useRoute()
 const router = useRouter()
@@ -74,24 +75,19 @@ const handleLogout = (): void => {
   router.push('/login')
 }
 
-const loadUserInfo = async (): Promise<void> => {
-  try {
-    const data = await authAPI.getInfo()
-    userInfo.value = data
-  } catch (error) {
-    console.error('获取用户信息失败:', error)
-  }
-}
-
 onMounted(() => {
-  loadUserInfo()
+  // 使用 watchEffect 监听缓存的用户信息变化
+  watchEffect(() => {
+    const cached = getCachedUserInfo()
+    if (cached) {
+      userInfo.value = cached
+    }
+  })
 })
 
-// 路由变化时关闭移动菜单并重新加载用户信息
-route.path
+// 路由变化时关闭移动菜单
 watch(() => route.path, () => {
   mobileMenuOpen.value = false
-  loadUserInfo()
 })
 </script>
 
