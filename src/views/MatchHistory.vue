@@ -143,6 +143,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authAPI, commonAPI, type MatchHistoryResponse, type PlayerBase } from '../api'
 import { ElMessage } from 'element-plus'
+import { watchDebounced } from '@vueuse/core'
 import RankBadge from '../components/RankBadge.vue'
 
 const route = useRoute()
@@ -209,8 +210,9 @@ const formatMatchId = (matchId: string): string => {
 
 const formatNumber = (value: number): string => {
   if (Number.isNaN(value)) return '-'
-  if (value >= 0) return `+${value.toFixed(2)}`
-  return value.toFixed(2)
+  const intValue = Math.round(value)
+  if (intValue >= 0) return `+${intValue}`
+  return intValue.toString()
 }
 
 const formatRating = (value: number): string => {
@@ -236,12 +238,6 @@ const scoreClass = (playerTeam: number, winTeam: number, scoreTeam: number): str
     // 是玩家所在的队伍
     return playerTeam === winTeam ? 'win-score' : 'lose-score'
   }
-  return ''
-}
-
-const pvpScoreChangeClass = (change: number): string => {
-  if (change > 0) return 'score-increase'
-  if (change < 0) return 'score-decrease'
   return ''
 }
 
@@ -300,7 +296,7 @@ const onPageChange = async (page: number): Promise<void> => {
 }
 
 // 监听 Steam ID 改变，获取玩家信息
-watch(querySteamId, async (newSteamId) => {
+watchDebounced(querySteamId, async (newSteamId) => {
   if (newSteamId.trim()) {
     try {
       playerInfo.value = await commonAPI.getPlayerBase(newSteamId)
@@ -312,11 +308,9 @@ watch(querySteamId, async (newSteamId) => {
 }, { debounce: 500 })
 
 // 监听 Steam ID 和 时间类型的变化自动查询
-watch([querySteamId, queryTimeType], () => {
-  if (querySteamId.value.trim()) {
-    currentPage.value = 1
-    queryHistory()
-  }
+watchDebounced([querySteamId, queryTimeType], () => {
+  currentPage.value = 1
+  queryHistory()
 }, { debounce: 500 })
 
 // 监听路由参数变化
