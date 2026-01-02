@@ -1,11 +1,18 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw, NavigationGuardNext } from 'vue-router'
 import Home from '../views/Home.vue'
 import Data from '../views/Data.vue'
 import Login from '../views/Login.vue'
 import MatchDetail from '../views/MatchDetail.vue'
+import MatchHistory from '../views/MatchHistory.vue'
 import { authAPI } from '../api'
 
-const routes = [
+declare module 'vue-router' {
+  interface RouteMeta {
+    requiresAuth?: boolean
+  }
+}
+
+const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
@@ -29,6 +36,12 @@ const routes = [
     name: 'MatchDetail',
     component: MatchDetail,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/history',
+    name: 'MatchHistory',
+    component: MatchHistory,
+    meta: { requiresAuth: true }
   }
 ]
 
@@ -38,7 +51,7 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next: NavigationGuardNext) => {
   const token = localStorage.getItem('token')
   const requiresAuth = to.meta.requiresAuth !== false
 

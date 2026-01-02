@@ -1,7 +1,7 @@
-import axios from 'axios'
+import axios, { AxiosInstance } from 'axios'
 
 // 创建 axios 实例
-const apiClient = axios.create({
+const apiClient: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 30000,
   headers: {

@@ -9,17 +9,17 @@
 			<div class="error-icon">⚠️</div>
 			<h3>{{ error }}</h3>
 			<div class="error-actions">
-				<button @click="loadMatchInfo" class="retry-btn">重试</button>
-				<button @click="goBack" class="back-btn">返回</button>
+				<el-button @click="loadMatchInfo" class="retry-btn">重试</el-button>
+				<el-button @click="goBack" class="back-btn">返回</el-button>
 			</div>
 		</div>
 
 		<div v-else-if="matchData" class="match-content">
 			<div class="match-header">
-				<button @click="goBack" class="back-btn-header">
+				<el-button @click="goBack" class="back-btn-header">
 					<ChevronLeft :size="20" />
 					返回
-				</button>
+				</el-button>
 				<h2>比赛详情</h2>
 			</div>
 
@@ -27,7 +27,7 @@
 				<div class="info-row">
 					<div class="info-item">
 						<label>比赛 ID</label>
-						<span>{{ matchData.match_id }}</span>
+						<span>{{ matchData.matchId }}</span>
 					</div>
 					<div class="info-item">
 						<label>时间</label>
@@ -45,167 +45,129 @@
 					</div>
 				</div>
 				<div class="score-display">
-					<div class="team-score" :class="{ winner: matchData.winteam === 1 }">
+					<div class="team-score" :class="{ winner: matchData.winTeam === 1 }">
 						<span class="team-label">队伍 1</span>
-						<span class="score">{{ matchData.score1 }}</span>
+						<span class="score">{{ matchData.team1Score }}</span>
 					</div>
 					<span class="vs">VS</span>
-					<div class="team-score" :class="{ winner: matchData.winteam === 2 }">
+					<div class="team-score" :class="{ winner: matchData.winTeam === 2 }">
 						<span class="team-label">队伍 2</span>
-						<span class="score">{{ matchData.score2 }}</span>
+						<span class="score">{{ matchData.team2Score }}</span>
 					</div>
 				</div>
 				<div class="legacy-display">
 					<div class="legacy-item">
 						<span class="legacy-label">队伍 1 底蕴分</span>
-						<span class="legacy-value">{{ formatInt(matchData.legasyscore1) }}</span>
+						<span class="legacy-value">{{ formatInt(matchData.team1LegacyScore) }}</span>
 					</div>
 					<div class="legacy-item">
 						<span class="legacy-label">队伍 2 底蕴分</span>
-						<span class="legacy-value">{{ formatInt(matchData.legasyscore2) }}</span>
+						<span class="legacy-value">{{ formatInt(matchData.team2LegacyScore) }}</span>
 					</div>
 				</div>
 			</div>
 
 			<div class="players-section">
 				<h3>玩家数据</h3>
-				<div class="team-tables">
-					<div class="team-table">
-						<h4>队伍 1</h4>
-						<div class="table-wrapper">
-							<table>
-								<thead>
-									<tr>
-										<th>头像</th>
-										<th>昵称</th>
-										<th>Rating</th>
-										<th>WE</th>
-										<th>K/D/A</th>
-										<th>KD Diff</th>
-										<th>底蕴分</th>
-										<th>段位</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr v-for="player in team1Players" :key="player.steamId">
-										<td class="avatar-cell">
-											<img
-												:src="`/imgs/avatar/${player.steamId}.png`"
-												:alt="player.nickname || player.steamId"
-												class="player-avatar"
-												@error="handleImageError"
-											/>
-										</td>
-										<td class="steam-id">{{ player.nickname }}</td>
-										<td :class="valueClass(player.rating)">{{ formatRating(player.rating) }}</td>
-										<td :class="valueClass(player.we, 8)">{{ formatWe(player.we) }}</td>
-										<td class="kda-combined">
-											<span>{{ player.kills }}</span>/<span>{{ player.deaths }}</span>/<span>{{ player.assists }}</span>
-										</td>
-										<td :class="['kd-diff', kdDiffClass(player.kills, player.deaths)]">
-											{{ calculateKDDiff(player.kills, player.deaths) }}
-										</td>
-										<td class="legacy-score">{{ formatInt(player.legasyscore) }}</td>
-										<td class="rank-cell">
-											<span :class="['rank-badge', rankInfo(player.pvpscore, player.pvpstar, matchData.season).class]">
-												{{ rankInfo(player.pvpscore, player.pvpstar, matchData.season).label }}
-												<span class="rank-progress">
-													<span
-														class="rank-progress-fill"
-														:style="{ width: `${rankInfo(player.pvpscore, player.pvpstar, matchData.season).progress}%` }"
-													></span>
-												</span>
-											</span>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
-
-					<div class="team-table">
-						<h4>队伍 2</h4>
-						<div class="table-wrapper">
-							<table>
-								<thead>
-									<tr>
-										<th>头像</th>
-										<th>昵称</th>
-										<th>Rating</th>
-										<th>WE</th>
-										<th>K/D/A</th>
-										<th>KD Diff</th>
-										<th>底蕴分</th>
-										<th>段位</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr v-for="player in team2Players" :key="player.steamId">
-										<td class="avatar-cell">
-											<img
-												:src="`/imgs/avatar/${player.steamId}.png`"
-												:alt="player.nickname || player.steamId"
-												class="player-avatar"
-												@error="handleImageError"
-											/>
-										</td>
-										<td class="steam-id">{{ player.nickname }}</td>
-										<td :class="valueClass(player.rating)">{{ formatRating(player.rating) }}</td>
-										<td :class="valueClass(player.we, 8)">{{ formatWe(player.we) }}</td>
-										<td class="kda-combined">
-											<span>{{ player.kills }}</span>/<span>{{ player.deaths }}</span>/<span>{{ player.assists }}</span>
-										</td>
-										<td :class="['kd-diff', kdDiffClass(player.kills, player.deaths)]">
-											{{ calculateKDDiff(player.kills, player.deaths) }}
-										</td>
-										<td class="legacy-score">{{ formatInt(player.legasyscore) }}</td>
-										<td class="rank-cell">
-											<span :class="['rank-badge', rankInfo(player.pvpscore, player.pvpstar, matchData.season).class]">
-												{{ rankInfo(player.pvpscore, player.pvpstar, matchData.season).label }}
-												<span class="rank-progress">
-													<span
-														class="rank-progress-fill"
-														:style="{ width: `${rankInfo(player.pvpscore, player.pvpstar, matchData.season).progress}%` }"
-													></span>
-												</span>
-											</span>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
+				<div class="comparison-table">
+					<el-table :data="allPlayersWithTeam" style="width: 100%" :span-method="objectSpanMethod" :row-class-name="getRowClassName">
+						<el-table-column align="center" width="4">
+							<template #default="{ row }">
+							</template>
+						</el-table-column>
+						<el-table-column label="头像" align="center" width="80">
+							<template #default="{ row }">
+							<el-avatar
+								:src="`/imgs/avatar/${row.steamId}.png`"
+								:alt="row.nickname || row.steamId"
+								shape="circle"
+									@error="handleImageError"
+								/>
+							</template>
+						</el-table-column>
+						<el-table-column label="昵称" min-width="90" align="center" class-name="hidden-sm-and-down">
+							<template #default="{ row }">
+								{{ row.nickname }}
+							</template>
+						</el-table-column>
+						<el-table-column label="Rating" align="center">
+							<template #default="{ row }">
+								<span :class="valueClass(row.rating)">{{ formatRating(row.rating) }}</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="WE" align="center">
+							<template #default="{ row }">
+								<span :class="valueClass(row.we, 8)">{{ formatWe(row.we) }}</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="K/D/A" align="center">
+							<template #default="{ row }">
+								<span>{{ row.kills }}/{{ row.deaths }}/{{ row.assists }}</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="KD Diff" align="center">
+							<template #default="{ row }">
+								<span :class="['kd-diff', kdDiffClass(row.kills, row.deaths)]">
+									{{ calculateKDDiff(row.kills, row.deaths) }}
+								</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="底蕴分" align="center">
+							<template #default="{ row }">
+								{{ formatInt(row.legacyScore) }}
+							</template>
+						</el-table-column>
+						<el-table-column label="段位" min-width="110" align="center">
+							<template #default="{ row }">
+								<RankBadge 
+									:pvp-score="row.pvpScore" 
+									:pvp-stars="row.pvpStars" 
+									:season="matchData?.season" 
+								/>
+							</template>
+						</el-table-column>
+					</el-table>
 				</div>
 			</div>
 		</div>
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ChevronLeft } from 'lucide-vue-next'
-import { commonAPI } from '../api'
+import { commonAPI, type Player, type MatchData} from '../api'
+import RankBadge from '../components/RankBadge.vue'
 
 const route = useRoute()
 const router = useRouter()
 
-const loading = ref(false)
-const error = ref(null)
-const matchData = ref(null)
+const loading = ref<boolean>(false)
+const error = ref<string | null>(null)
+const matchData = ref<MatchData | null>(null)
 
-const team1Players = computed(() => {
+const team1Players = computed<Player[]>(() => {
 	const list = matchData.value?.players.filter((p) => p.team === 1) || []
 	return [...list].sort((a, b) => Number(b.rating) - Number(a.rating))
 })
 
-const team2Players = computed(() => {
+const team2Players = computed<Player[]>(() => {
 	const list = matchData.value?.players.filter((p) => p.team === 2) || []
 	return [...list].sort((a, b) => Number(b.rating) - Number(a.rating))
 })
 
-const loadMatchInfo = async () => {
-	const matchId = route.query.id
+
+const allPlayersWithTeam = computed<Array<Player & { teamName: string }>>(() => {
+	return [
+		...team1Players.value.map(p => ({ ...p, teamName: '队伍 1' })),
+		...team2Players.value.map(p => ({ ...p, teamName: '队伍 2' }))
+	]
+})
+
+
+const loadMatchInfo = async (): Promise<void> => {
+	const matchId = route.query.id as string
 	if (!matchId) {
 		error.value = '缺少比赛 ID'
 		return
@@ -216,8 +178,8 @@ const loadMatchInfo = async () => {
 
 	try {
 		const data = await commonAPI.getMatchInfo(matchId)
-		matchData.value = data
-	} catch (err) {
+		matchData.value = data as MatchData
+	} catch (err: any) {
 		if (err.response?.status === 404) {
 			error.value = '比赛不存在'
 		} else {
@@ -229,22 +191,23 @@ const loadMatchInfo = async () => {
 	}
 }
 
-const formatTimestamp = (timestamp) => {
+const formatTimestamp = (timestamp: number): string => {
 	const date = new Date(timestamp * 1000)
 	return date.toLocaleString('zh-CN')
 }
 
-const calculateKD = (kills, deaths) => {
-	if (deaths === 0) return kills.toFixed(2)
-	return (kills / deaths).toFixed(2)
+const calculateKD = (kills: number | string, deaths: number | string): string => {
+	const d = Number(deaths)
+	if (d === 0) return Number(kills).toFixed(2)
+	return (Number(kills) / d).toFixed(2)
 }
 
-const calculateKDDiff = (kills, deaths) => {
+const calculateKDDiff = (kills: number | string, deaths: number | string): string | number => {
 	const diff = Number(kills) - Number(deaths)
 	return Number.isNaN(diff) ? '-' : diff
 }
 
-const kdDiffClass = (kills, deaths) => {
+const kdDiffClass = (kills: number | string, deaths: number | string): string => {
 	const diff = Number(kills) - Number(deaths)
 	if (Number.isNaN(diff)) return ''
 	if (diff > 0) return 'kd-positive'
@@ -252,99 +215,66 @@ const kdDiffClass = (kills, deaths) => {
 	return 'kd-zero'
 }
 
-const formatInt = (value) => {
+const formatInt = (value: number | string): string | number => {
 	const num = Number(value)
 	if (!Number.isFinite(num)) return '-'
 	return Math.round(num)
 }
 
-const formatRating = (value) => {
+const formatRating = (value: number | string): string => {
 	const num = Number(value)
 	if (!Number.isFinite(num)) return '-'
 	return num.toFixed(2)
 }
 
-const formatWe = (value) => {
+const formatWe = (value: number | string): string => {
 	const num = Number(value)
 	if (!Number.isFinite(num)) return '-'
 	return num.toFixed(1)
 }
 
-const parseSeasonNumber = (season) => {
-	if (season == null) return NaN
-	if (typeof season === 'number') return season
-	const match = String(season).match(/\d+/)
-	return match ? Number(match[0]) : NaN
-}
-
-const rankInfo = (pvpscore, pvpstar, season) => {
-	const r = Number(pvpscore)
-	const s = Number(pvpstar)
-	const clamp = (val, min, max) => Math.min(Math.max(val, min), max)
-	const seasonNum = parseSeasonNumber(season)
-	const legacy = Number.isFinite(seasonNum) && seasonNum <= 20
-
-	if (!Number.isFinite(r) || r === 0) return { label: '未定段', class: 'rank-unknown', progress: 0 }
-
-	if (legacy) {
-		// Legacy tiers (<= S20): no star tiers
-		const ranges = [
-			{ max: 1000, label: 'D', class: 'rank-d', base: 0, span: 1000 },
-			{ max: 1200, label: 'D+', class: 'rank-d-plus', base: 1000, span: 200 },
-			{ max: 1400, label: 'C', class: 'rank-c', base: 1200, span: 200 },
-			{ max: 1600, label: 'C+', class: 'rank-c-plus', base: 1400, span: 200 },
-			{ max: 1800, label: 'B', class: 'rank-b', base: 1600, span: 200 },
-			{ max: 2000, label: 'B+', class: 'rank-b-plus', base: 1800, span: 200 },
-			{ max: 2200, label: 'A', class: 'rank-a', base: 2000, span: 200 },
-			{ max: 2400, label: 'A+', class: 'rank-a-plus', base: 2200, span: 200 }
-		]
-
-		for (const tier of ranges) {
-			if (r <= tier.max) {
-				const progress = clamp(((r - tier.base) / tier.span) * 100, 0, 100)
-				return { label: tier.label, class: tier.class, progress }
-			}
-		}
-
-		// Above 2400 -> S, progress uses pvpstar if available else max
-		const maxStar = 50
-		const starLabel = Number.isFinite(s) ? s : 0
-		const progress = clamp((Number.isFinite(s) ? s : 0) / maxStar * 100, 0, 100)
-		return { label: 'S', class: 'rank-s', progress }
-	}
-
-	// Modern tiers (> S20): keep star variants
-	if (r >= 2401) {
-		const starLabel = Number.isFinite(s) ? s : 0
-		const maxStar = 50
-		const progress = clamp((Number.isFinite(s) ? s : 0) / maxStar * 100, 0, 100)
-		return { label: `S★${starLabel}`, class: 'rank-s', progress }
-	}
-	if (r >= 2201) return { label: 'A+☆', class: 'rank-a-plus-elite', progress: clamp(((r - 2201) / (2400 - 2201)) * 100, 0, 100) }
-	if (r >= 2051) return { label: 'A+', class: 'rank-a-plus', progress: clamp(((r - 2051) / (2200 - 2051)) * 100, 0, 100) }
-	if (r >= 1901) return { label: 'A', class: 'rank-a', progress: clamp(((r - 1901) / (2050 - 1901)) * 100, 0, 100) }
-	if (r >= 1751) return { label: 'B+☆', class: 'rank-b-plus-elite', progress: clamp(((r - 1751) / (1900 - 1751)) * 100, 0, 100) }
-	if (r >= 1601) return { label: 'B+', class: 'rank-b-plus', progress: clamp(((r - 1601) / (1750 - 1601)) * 100, 0, 100) }
-	if (r >= 1451) return { label: 'B', class: 'rank-b', progress: clamp(((r - 1451) / (1600 - 1451)) * 100, 0, 100) }
-	if (r >= 1301) return { label: 'C+☆', class: 'rank-c-plus-elite', progress: clamp(((r - 1301) / (1450 - 1301)) * 100, 0, 100) }
-	if (r >= 1151) return { label: 'C+', class: 'rank-c-plus', progress: clamp(((r - 1151) / (1300 - 1151)) * 100, 0, 100) }
-	if (r >= 1001) return { label: 'C', class: 'rank-c', progress: clamp(((r - 1001) / (1150 - 1001)) * 100, 0, 100) }
-	return { label: 'D', class: 'rank-d', progress: clamp((r / 1000) * 100, 0, 100) }
-}
-
-const valueClass = (value, threshold = 1) => {
+const valueClass = (value: number | string, threshold: number = 1): string => {
 	const num = Number(value)
 	if (Number.isNaN(num)) return ''
 	return num > threshold ? 'value-positive' : 'value-negative'
 }
 
-const goBack = () => {
+const goBack = (): void => {
 	router.back()
 }
 
-const handleImageError = (e) => {
-	e.target.src =
+const handleImageError = (e: Event): void => {
+	const img = e.target as HTMLImageElement
+	img.src =
 		'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"%3E%3Crect fill="%23e5e7eb" width="40" height="40"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="14"%3E?%3C/text%3E%3C/svg%3E'
+}
+
+const objectSpanMethod = ({ rowIndex, columnIndex }: { rowIndex: number; columnIndex: number }): Array<number> | void => {
+	// 只对第一列进行合并
+	if (columnIndex === 0) {
+		if (rowIndex < team1Players.value.length) {
+			// 队伍1的第一行，合并所有队伍1的行
+			if (rowIndex === 0) return [team1Players.value.length, 1]
+		} else {
+			// 队伍2的第一行，合并所有队伍2的行
+			if (rowIndex === team1Players.value.length) return [team2Players.value.length, 1]
+		}
+		// 其他行的第一列隐藏（被上面的行合并了）
+		return [0, 0]
+	}
+}
+
+const getColumnClassName = (): string => {
+	return 'team-indicator-column'
+}
+
+const getRowClassName = ({ row, rowIndex }: { row: any; rowIndex: number }): string => {
+	const isMergedFirst = rowIndex === 0 || rowIndex === team1Players.value.length
+	let className = row.teamName === '队伍 1' ? 'team-1-row' : 'team-2-row'
+	if (isMergedFirst) {
+		className += ' merged-first'
+	}
+	return className
 }
 
 onMounted(() => {
@@ -404,33 +334,28 @@ onMounted(() => {
 	gap: 0.75rem;
 }
 
-.retry-btn,
-.back-btn {
+:deep(.retry-btn),
+:deep(.back-btn) {
 	padding: 0.75rem 1.5rem;
-	border: none;
-	border-radius: 4px;
-	font-size: 0.9375rem;
-	cursor: pointer;
-	transition: all 0.2s;
 }
 
-.retry-btn {
-	background: #6366f1;
-	color: white;
+:deep(.retry-btn) {
+	background: #6366f1 !important;
+	color: white !important;
 }
 
-.retry-btn:hover {
-	background: #4f46e5;
+:deep(.retry-btn:hover) {
+	background: #4f46e5 !important;
 }
 
-.back-btn {
-	background: white;
-	color: #6366f1;
-	border: 1px solid #6366f1;
+:deep(.back-btn) {
+	background: white !important;
+	color: #6366f1 !important;
+	border: 1px solid #6366f1 !important;
 }
 
-.back-btn:hover {
-	background: #f3f4f6;
+:deep(.back-btn:hover) {
+	background: #f3f4f6 !important;
 }
 
 .match-content {
@@ -445,23 +370,23 @@ onMounted(() => {
 	gap: 1rem;
 }
 
-.back-btn-header {
+:deep(.back-btn-header) {
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
-	padding: 0.5rem 1rem;
-	background: white;
-	border: 1px solid #e5e7eb;
+	padding: 0.5rem 1rem !important;
+	background: white !important;
+	border: 1px solid #e5e7eb !important;
 	border-radius: 4px;
-	color: #374151;
+	color: #374151 !important;
 	font-size: 0.9375rem;
 	cursor: pointer;
 	transition: all 0.2s;
 }
 
-.back-btn-header:hover {
-	background: #f9fafb;
-	border-color: #d1d5db;
+:deep(.back-btn-header:hover) {
+	background: #f9fafb !important;
+	border-color: #d1d5db !important;
 }
 
 .match-header h2 {
@@ -540,6 +465,8 @@ onMounted(() => {
 	font-size: 0.875rem;
 	color: #6b7280;
 	font-weight: 500;
+	height: 100%;
+	width: 100%;
 }
 
 .score {
@@ -571,128 +498,36 @@ onMounted(() => {
 	font-weight: 500;
 }
 
-.team-tables {
-	display: flex;
-	flex-direction: column;
-	gap: 1.5rem;
-}
-
-.team-table {
+.comparison-table {
 	background: white;
 	border-radius: 4px;
 	border: 1px solid #e5e7eb;
 	overflow: hidden;
 }
 
-.team-table h4 {
-	margin: 0;
-	padding: 1rem 1.5rem;
-	background: #f9fafb;
-	border-bottom: 1px solid #e5e7eb;
-	color: #111827;
-	font-size: 1rem;
-	font-weight: 500;
+.comparison-table :deep(.el-table__cell) {
+	position: relative;
+	padding: 0;
 }
 
-.table-wrapper {
-	overflow-x: auto;
-}
-
-table {
-	width: 100%;
-	border-collapse: collapse;
-	table-layout: fixed;
-}
-
-thead {
-	background: #f9fafb;
-}
-
-.team-table :is(th, td):nth-child(1) {
-	width: 72px;
-}
-
-.team-table :is(th, td):nth-child(2) {
-	width: 160px;
-}
-
-.team-table :is(th, td):nth-child(3),
-.team-table :is(th, td):nth-child(4),
-.team-table :is(th, td):nth-child(5),
-.team-table :is(th, td):nth-child(6),
-.team-table :is(th, td):nth-child(7),
-.team-table :is(th, td):nth-child(8) {
-	text-align: center;
-}
-
-.team-table :is(th, td):nth-child(3) {
-	width: 90px;
-}
-
-.team-table :is(th, td):nth-child(4) {
-	width: 90px;
-}
-
-.team-table :is(th, td):nth-child(5) {
-	width: 120px;
-}
-
-.team-table :is(th, td):nth-child(6) {
-	width: 90px;
-}
-
-.team-table :is(th, td):nth-child(7) {
-	width: 100px;
-}
-
-.team-table :is(th, td):nth-child(8) {
-	width: 110px;
-}
-
-th {
-	padding: 0.75rem 1rem;
-	text-align: left;
-	font-size: 0.875rem;
-	font-weight: 500;
-	color: #6b7280;
-	border-bottom: 1px solid #e5e7eb;
-	white-space: nowrap;
-}
-
-td {
-	padding: 0.875rem 1rem;
-	font-size: 0.9375rem;
-	color: #111827;
-	border-bottom: 1px solid #f3f4f6;
-}
-
-tbody tr:last-child td {
-	border-bottom: none;
-}
-
-tbody tr:hover {
-	background: #f9fafb;
-}
-
-.avatar-cell {
-	padding: 0.5rem !important;
-}
-
-.player-avatar {
-	width: 40px;
-	height: 40px;
-	border-radius: 4px;
-	object-fit: cover;
+.comparison-table .team-label {
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 4px;
 	display: block;
+	border-radius: 0;
+	padding: 0;
+	margin: 0;
 }
 
-.steam-id {
-	font-family: monospace;
-	color: #6366f1;
+.comparison-table .team-label.team-1 {
+	background: #6366f1;
 }
 
-.kd-ratio {
-	font-weight: 600;
+.comparison-table .team-label.team-2 {
+	background: #f59e0b;
 }
 
 .kd-diff {
@@ -711,8 +546,44 @@ tbody tr:hover {
 	color: #111827;
 }
 
-.legacy-score {
-	text-align: center;
+.value-positive {
+	color: #059669;
+	font-weight: 600;
+}
+
+.value-negative {
+	color: #dc2626;
+	font-weight: 600;
+}
+
+.team-tables {
+	display: none;
+}
+
+.team-table h4 {
+	margin: 0;
+	padding: 1rem 1.5rem;
+	background: #f9fafb;
+	border-bottom: 1px solid #e5e7eb;
+	color: #111827;
+	font-size: 1rem;
+	font-weight: 500;
+}
+
+.kd-diff {
+	font-weight: 700;
+}
+
+.kd-positive {
+	color: #059669;
+}
+
+.kd-negative {
+	color: #dc2626;
+}
+
+.kd-zero {
+	color: #111827;
 }
 
 .legacy-display {
@@ -763,180 +634,56 @@ tbody tr:hover {
 	text-align: center;
 }
 
-.rank-badge {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	flex-direction: column;
-	gap: 0.15rem;
-	min-width: 68px;
-	padding: 0.35rem 0.6rem;
-	border-radius: 999px;
-	font-weight: 700;
-	font-size: 0.85rem;
-	border: 1px solid transparent;
-	background: #f3f4f6;
-	color: #111827;
+.value-positive {
+	color: #16a34a;
 }
 
-.rank-progress {
-	width: 100%;
-	height: 4px;
-	background: rgba(255, 255, 255, 0.35);
-	border-radius: 999px;
-	overflow: hidden;
+.value-negative {
+	color: #dc2626;
 }
 
-.rank-progress-fill {
-	display: block;
-	height: 100%;
-	background: rgba(0, 0, 0, 0.3);
+.kd-diff {
+	font-weight: 600;
 }
 
-.rank-a-plus-elite {
-	background: linear-gradient(90deg, #f59e0b, #f97316);
-	color: #fff;
-	border-color: #f59e0b;
+.kd-diff.positive {
+	color: #22c55e;
 }
 
-.rank-a-plus {
-	background: linear-gradient(90deg, #22c55e, #16a34a);
-	color: #fff;
-	border-color: #16a34a;
+.kd-diff.negative {
+	color: #ef4444;
 }
 
-.rank-a {
-	background: linear-gradient(90deg, #34d399, #10b981);
-	color: #064e3b;
-	border-color: #10b981;
+:deep(.merged-first.team-1-row .el-table__cell:first-child) {
+	background: #6366f1 !important;
 }
 
-.rank-b-plus-elite {
-	background: linear-gradient(90deg, #facc15, #eab308);
-	color: #422006;
-	border-color: #ca8a04;
-}
-
-.rank-b-plus {
-	background: linear-gradient(90deg, #38bdf8, #0ea5e9);
-	color: #0b3b5c;
-	border-color: #0ea5e9;
-}
-
-.rank-b {
-	background: linear-gradient(90deg, #67e8f9, #22d3ee);
-	color: #0f172a;
-	border-color: #22d3ee;
-}
-
-.rank-c-plus-elite {
-	background: linear-gradient(90deg, #fbbf24, #f59e0b);
-	color: #422006;
-	border-color: #d97706;
-}
-
-.rank-c-plus {
-	background: linear-gradient(90deg, #a5b4fc, #818cf8);
-	color: #111827;
-	border-color: #6366f1;
-}
-
-.rank-c {
-	background: linear-gradient(90deg, #bae6fd, #7dd3fc);
-	color: #0f172a;
-	border-color: #38bdf8;
-}
-
-.rank-d {
-	background: #e5e7eb;
-	color: #374151;
-	border-color: #d1d5db;
-}
-
-.rank-d-plus {
-	background: linear-gradient(90deg, #e5e7eb, #d1d5db);
-	color: #1f2937;
-	border-color: #cbd5e1;
-}
-
-.rank-s {
-	background: linear-gradient(90deg, #f97316, #dc2626);
-	color: #fff7ed;
-	border-color: #ea580c;
-}
-
-.rank-unknown {
-	background: #f3f4f6;
-	color: #6b7280;
-	border-color: #e5e7eb;
-}
-
-@media (max-width: 900px) {
-	.team-table :is(th, td):nth-child(2) {
-		display: none;
-	}
-
-	.team-table :is(th, td):nth-child(3) {
-		width: 96px;
-	}
-
-	th,
-	td {
-		padding: 0.6rem;
-		font-size: 0.85rem;
-	}
-
-	.rank-badge {
-		min-width: 60px;
-		padding: 0.3rem 0.5rem;
-		font-size: 0.8rem;
-	}
+:deep(.merged-first.team-2-row .el-table__cell:first-child) {
+	background: #f59e0b !important;
 }
 
 @media (max-width: 768px) {
-	.match-header h2 {
-		font-size: 1.25rem;
+	.match-header {
+		flex-direction: column;
+		gap: 10px;
 	}
 
 	.score-display {
-		gap: 1rem;
-		padding: 1rem;
+		flex-direction: column;
+		gap: 10px;
 	}
 
 	.team-score {
-		padding: 0.75rem 1.5rem;
+		padding: 8px 10px;
 	}
 
-	.score {
-		font-size: 1.5rem;
+	.legacy-display {
+		flex-direction: column;
+		gap: 10px;
 	}
 
-	.info-row {
-		grid-template-columns: 1fr;
-		gap: 1rem;
-	}
-
-	th,
-	td {
-		padding: 0.45rem;
-		font-size: 0.78rem;
-	}
-
-	.player-avatar {
-		width: 32px;
-		height: 32px;
-	}
-
-	.steam-id {
-		max-width: 100px;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.rank-badge {
-		min-width: 56px;
-		padding: 0.28rem 0.45rem;
-		font-size: 0.75rem;
+	.legacy-item {
+		padding: 10px 0;
 	}
 }
 </style>

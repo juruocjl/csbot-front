@@ -17,7 +17,7 @@
             <label>Token:</label>
             <div class="token-display">
               <code>{{ authData.token.substring(0, 20) }}...</code>
-              <button @click="copyToken" class="copy-btn">复制</button>
+              <el-button @click="copyToken" class="copy-btn">复制</el-button>
             </div>
           </div>
           
@@ -31,13 +31,13 @@
             <p>在群内使用 <code>/验证 {{ authData.code }}</code> 登录</p>
           </div>
           
-          <button @click="checkLogin" class="check-btn" :disabled="checking">
+          <el-button @click="checkLogin" class="check-btn" :disabled="checking">
             {{ checking ? '检查中...' : '检查登录' }}
-          </button>
+          </el-button>
           
-          <button @click="refreshAuth" class="refresh-btn">
+          <el-button @click="refreshAuth" class="refresh-btn">
             刷新验证码
-          </button>
+          </el-button>
 
           <div class="manual-token">
             <label>手动输入 Token（可选）</label>
@@ -47,13 +47,13 @@
                 class="token-input"
                 placeholder="粘贴 token 后点击验证"
               />
-              <button
+              <el-button
                 class="manual-btn"
                 @click="useManualToken"
                 :disabled="manualChecking"
               >
                 {{ manualChecking ? '验证中...' : '验证并登录' }}
-              </button>
+              </el-button>
             </div>
             <p class="manual-hint">验证通过后将直接登录并保存该 token</p>
           </div>
@@ -63,29 +63,35 @@
         
         <div v-else class="error-state">
           <p class="error-message">{{ errorMessage }}</p>
-          <button @click="initAuth" class="retry-btn">重试</button>
+          <el-button @click="initAuth" class="retry-btn">重试</el-button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { authAPI } from '../api'
+
+interface AuthData {
+  token: string
+  code: string
+}
 
 const router = useRouter()
 const route = useRoute()
 
-const loading = ref(false)
-const checking = ref(false)
-const manualChecking = ref(false)
-const authData = ref(null)
-const manualToken = ref('')
-const errorMessage = ref('')
+const loading = ref<boolean>(false)
+const checking = ref<boolean>(false)
+const manualChecking = ref<boolean>(false)
+const authData = ref<AuthData | null>(null)
+const manualToken = ref<string>('')
+const errorMessage = ref<string>('')
 
-const initAuth = async () => {
+const initAuth = async (): Promise<void> => {
   loading.value = true
   errorMessage.value = ''
   
@@ -96,47 +102,46 @@ const initAuth = async () => {
     // 保存 token 到 localStorage
     localStorage.setItem('token', data.token)
   } catch (error) {
-    errorMessage.value = '获取验证码失败，请重试'
+    ElMessage.error('获取验证码失败，请重试')
     console.error('初始化认证失败:', error)
   } finally {
     loading.value = false
   }
 }
 
-const checkLogin = async () => {
+const checkLogin = async (): Promise<void> => {
   checking.value = true
   
   try {
     await authAPI.getInfo()
     // 登录成功，跳转回之前的页面或首页
-    const redirect = route.query.redirect || '/'
+    const redirect = route.query.redirect as string || '/'
     router.push(redirect)
   } catch (error) {
-    errorMessage.value = '登录验证失败，请确保已在其他设备上完成验证'
+    ElMessage.error('登录验证失败，请确保已在其他设备上完成验证')
     console.error('检查登录失败:', error)
   } finally {
     checking.value = false
   }
 }
 
-const useManualToken = async () => {
+const useManualToken = async (): Promise<void> => {
   const token = manualToken.value.trim()
   if (!token) {
-    errorMessage.value = '请输入 token'
+    ElMessage.error('请输入 token')
     return
   }
 
   const prevToken = localStorage.getItem('token')
   manualChecking.value = true
-  errorMessage.value = ''
 
   try {
     localStorage.setItem('token', token)
     await authAPI.getInfo()
-    const redirect = route.query.redirect || '/'
+    const redirect = route.query.redirect as string || '/'
     router.push(redirect)
   } catch (error) {
-    errorMessage.value = 'Token 验证失败，请确认正确后重试'
+    ElMessage.error('Token 验证失败，请确认正确后重试')
     if (prevToken) {
       localStorage.setItem('token', prevToken)
     } else {
@@ -148,18 +153,18 @@ const useManualToken = async () => {
   }
 }
 
-const refreshAuth = () => {
+const refreshAuth = (): void => {
   initAuth()
 }
 
-const copyToken = () => {
+const copyToken = (): void => {
   if (authData.value) {
     navigator.clipboard.writeText(authData.value.token)
       .then(() => {
-        alert('Token 已复制到剪贴板')
+        ElMessage.success('Token 已复制到剪贴板')
       })
       .catch(() => {
-        alert('复制失败，请手动复制')
+        ElMessage.error('复制失败，请手动复制')
       })
   }
 }
@@ -284,20 +289,12 @@ onUnmounted(() => {
   text-overflow: ellipsis;
 }
 
-.copy-btn {
-  padding: 0.75rem 1rem;
-  background: #6366f1;
-  color: white;
-  border: none;
-  border-radius: 4px;
+:deep(.copy-btn) {
+  padding: 0.75rem 1rem !important;
+  background: #6366f1 !important;
+  color: white !important;
   font-size: 0.875rem;
-  cursor: pointer;
-  transition: background 0.2s;
   white-space: nowrap;
-}
-
-.copy-btn:hover {
-  background: #4f46e5;
 }
 
 .code-section {
@@ -335,50 +332,32 @@ onUnmounted(() => {
   font-size: 0.875rem;
 }
 
-.check-btn,
-.refresh-btn,
-.retry-btn {
-  width: 100%;
-  padding: 0.875rem;
-  border: none;
-  border-radius: 4px;
+:deep(.check-btn) {
+  width: 100% !important;
+  padding: 0.875rem !important;
   font-size: 1rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+  background: #6366f1 !important;
+  color: white !important;
 }
 
-.check-btn {
-  background: #6366f1;
-  color: white;
+:deep(.refresh-btn) {
+  width: 100% !important;
+  padding: 0.875rem !important;
+  font-size: 1rem;
+  font-weight: 500;
+  background: white !important;
+  color: #6366f1 !important;
+  border: 1px solid #6366f1 !important;
 }
 
-.check-btn:hover:not(:disabled) {
-  background: #4f46e5;
-}
-
-.check-btn:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-}
-
-.refresh-btn {
-  background: white;
-  color: #6366f1;
-  border: 1px solid #6366f1;
-}
-
-.refresh-btn:hover {
-  background: #f3f4f6;
-}
-
-.retry-btn {
-  background: #6366f1;
-  color: white;
-}
-
-.retry-btn:hover {
-  background: #4f46e5;
+:deep(.retry-btn) {
+  width: 100% !important;
+  padding: 0.875rem !important;
+  font-size: 1rem;
+  font-weight: 500;
+  background: #6366f1 !important;
+  color: white !important;
 }
 
 .error-message {
@@ -420,25 +399,12 @@ onUnmounted(() => {
   background: white;
 }
 
-.manual-btn {
-  padding: 0.75rem 1rem;
-  background: #10b981;
-  color: white;
-  border: none;
-  border-radius: 4px;
+:deep(.manual-btn) {
+  padding: 0.75rem 1rem !important;
+  background: #10b981 !important;
+  color: white !important;
   font-size: 0.9375rem;
-  cursor: pointer;
-  transition: background 0.2s;
   white-space: nowrap;
-}
-
-.manual-btn:hover:not(:disabled) {
-  background: #0ea371;
-}
-
-.manual-btn:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
 }
 
 .manual-hint {

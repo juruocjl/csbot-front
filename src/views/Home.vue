@@ -7,7 +7,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // 主页组件 - 内容待实现
 </script>
 

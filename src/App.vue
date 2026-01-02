@@ -1,7 +1,6 @@
 <template>
-  <div class="app">
-    <div class="mobile-overlay" :class="{ active: mobileMenuOpen }" @click="mobileMenuOpen = false"></div>
-    <aside class="sidebar" :class="{ active: mobileMenuOpen, collapsed: sidebarCollapsed }">
+  <el-container class="app-container">
+    <el-aside width="auto" class="sidebar" :class="{ collapsed: sidebarCollapsed, active: mobileMenuOpen }">
       <div class="logo">
         <h2 v-show="!sidebarCollapsed">Dashboard</h2>
         <h2 v-show="sidebarCollapsed" class="logo-icon">D</h2>
@@ -15,98 +14,132 @@
           <BarChart3 :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">数据</span>
         </router-link>
+        <router-link to="/history" class="nav-item" @click="mobileMenuOpen = false">
+          <History :size="20" :stroke-width="2" />
+          <span v-show="!sidebarCollapsed">历史</span>
+        </router-link>
       </nav>
-      <div class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
+      <div class="sidebar-toggle hidden-sm-and-down" @click="sidebarCollapsed = !sidebarCollapsed">
         <ChevronLeft v-if="!sidebarCollapsed" :size="20" :stroke-width="2" />
         <ChevronRight v-else :size="20" :stroke-width="2" />
       </div>
-    </aside>
-    <main class="main-content">
-      <header class="header">
-        <button class="mobile-menu-btn" @click="mobileMenuOpen = !mobileMenuOpen">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+    </el-aside>
+    <el-container class="main-container" @click="mobileMenuOpen = false">
+      <el-header class="header">
+        <el-button class="mobile-menu-btn hidden-md-and-up" @click.stop="mobileMenuOpen = !mobileMenuOpen">
+          <Menu :size="20" :stroke-width="2" />
+        </el-button>
         <div class="header-left">
           <h1>{{ pageTitle }}</h1>
         </div>
         <div class="header-right">
-          <div class="user-info">
-            <span>管理员</span>
+          <div class="user-info hidden-sm-and-down">
+            <span>{{ userInfo?.showName || '用户' }}</span>
           </div>
-          <button class="logout-btn" @click="handleLogout">
+          <el-button class="logout-btn" @click="handleLogout">
             <LogOut :size="18" :stroke-width="2" />
-            <span>登出</span>
-          </button>
+          </el-button>
         </div>
-      </header>
-      <div class="content">
+      </el-header>
+      <el-main class="content">
         <router-view />
-      </div>
-    </main>
-  </div>
+      </el-main>
+    </el-container>
+  </el-container>
 </template>
 
-<script setup>
-import { computed, ref } from 'vue'
+<script setup lang="ts">
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut } from 'lucide-vue-next'
+import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History } from 'lucide-vue-next'
+import { authAPI, type UserInfo } from './api'
 
 const route = useRoute()
 const router = useRouter()
-const mobileMenuOpen = ref(false)
-const sidebarCollapsed = ref(false)
+const mobileMenuOpen = ref<boolean>(false)
+const sidebarCollapsed = ref<boolean>(false)
+const userInfo = ref<UserInfo | null>(null)
 
-const pageTitle = computed(() => {
-  const titles = {
+const pageTitle = computed<string>(() => {
+  const titles: Record<string, string> = {
     '/': '主页',
-    '/data': '数据'
+    '/data': '数据',
+    '/history': '历史'
   }
   return titles[route.path] || 'Dashboard'
 })
 
-const handleLogout = () => {
+const handleLogout = (): void => {
   localStorage.removeItem('token')
   router.push('/login')
 }
+
+const loadUserInfo = async (): Promise<void> => {
+  try {
+    const data = await authAPI.getInfo()
+    userInfo.value = data
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+  }
+}
+
+onMounted(() => {
+  loadUserInfo()
+})
+
+// 路由变化时关闭移动菜单并重新加载用户信息
+route.path
+watch(() => route.path, () => {
+  mobileMenuOpen.value = false
+  loadUserInfo()
+})
 </script>
 
 <style scoped>
-.app {
+:deep(.el-container) {
+  height: 100vh;
+}
+
+:deep(.el-aside) {
+  background: #6366f1;
+  color: white;
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+  transition: width 0.3s ease;
+}
+
+:deep(.el-header) {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  height: auto;
+}
+
+:deep(.el-main) {
+  background: #f5f5f5;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.app-container {
   display: flex;
   height: 100vh;
-  background: #f5f5f5;
 }
 
-.mobile-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 998;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.mobile-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
+.main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar {
   width: 250px;
-  background: #6366f1;
-  color: white;
   display: flex;
   flex-direction: column;
-  transition: width 0.3s ease, transform 0.3s ease;
-  z-index: 999;
   position: relative;
+  z-index: 999;
+  transition: width 0.3s ease, transform 0.3s ease;
 }
 
 .sidebar.collapsed {
@@ -186,41 +219,19 @@ const handleLogout = () => {
   color: white;
 }
 
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .mobile-menu-btn {
-  display: none;
   flex-direction: column;
   justify-content: space-around;
   width: 2rem;
   height: 2rem;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
+  padding: 0 !important;
   z-index: 10;
 }
 
-.mobile-menu-btn span {
-  width: 2rem;
-  height: 2px;
-  background: #374151;
-  transition: all 0.3s ease;
-}
-
-.header {
-  background: white;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
+:deep(.mobile-menu-btn) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .header-left h1 {
@@ -234,6 +245,7 @@ const handleLogout = () => {
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-left: auto;
 }
 
 .user-info {
@@ -248,47 +260,27 @@ const handleLogout = () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.875rem;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  color: #374151;
   font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
-.logout-btn:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
-  color: #111827;
+:deep(.logout-btn) {
+  color: #374151 !important;
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
 }
 
-.content {
-  flex: 1;
-  padding: 1.5rem;
-  overflow-y: auto;
+:deep(.logout-btn:hover) {
+  background: #f9fafb !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
 }
 
-@media (max-width: 1024px) {
-  .sidebar:not(.collapsed) {
-    width: 200px;
-  }
-  
-  .content {
-    padding: 1.25rem;
-  }
+.logout-btn {
+  padding: 0.5rem;
 }
 
+/* 小设备响应式 */
 @media (max-width: 768px) {
-  .mobile-menu-btn {
-    display: flex;
-  }
-  
-  .mobile-overlay {
-    display: block;
-  }
-  
   .sidebar {
     position: fixed;
     top: 0;
@@ -296,48 +288,15 @@ const handleLogout = () => {
     height: 100vh;
     width: 250px;
     transform: translateX(-100%);
+    z-index: 1000;
   }
-  
+
   .sidebar.active {
     transform: translateX(0);
   }
-  
-  .sidebar-toggle {
-    display: none;
-  }
-  
-  .header {
-    padding: 1rem;
-  }
-  
-  .header-left h1 {
-    font-size: 1.25rem;
-  }
-  
-  .user-info {
-    display: none;
-  }
-  
-  .logout-btn span {
-    display: none;
-  }
-  
-  .logout-btn {
-    padding: 0.5rem;
-  }
-  
-  .content {
-    padding: 1rem;
-  }
-}
 
-@media (max-width: 480px) {
-  .header-left h1 {
-    font-size: 1.125rem;
-  }
-  
-  .content {
-    padding: 0.75rem;
+  .sidebar.collapsed {
+    width: 250px;
   }
 }
 </style>
