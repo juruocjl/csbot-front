@@ -6,12 +6,22 @@ export interface AuthData {
   code: string
 }
 
+export interface VerifyTokenResponse {
+  isVerified: boolean
+}
+
+export interface InfoNameResponse {
+  showName: string
+}
+
+export interface InfoSteamIdResponse {
+  steamId: string | null
+}
+
 export interface UserInfo {
   isVerified: boolean
-  userId: string
-  groupId: string
-  steamId: string | null
   showName: string
+  steamId: string | null
 }
 
 // 比赛相关
@@ -26,6 +36,7 @@ export interface Player {
   assists: number | string
   legacyScore: number | string
   pvpScore: number | string
+  pvpScoreChange: number | string
   pvpStars: number | string
 }
 
@@ -78,12 +89,59 @@ export interface PlayerBase {
   lastUpdate: number
 }
 
+// 配置相关
+export interface TimeResponse {
+  timeTypes: string[]
+}
+
+export interface RankConfigItem {
+  name: string
+  description: string
+  defaultTimeType: string
+  allowedTimeTypes: string[]
+  // outputFormat: dX 表示保留X位小数, pX 表示保留X位百分数
+  // 例如: "d2" 表示保留2位小数, "p1" 表示保留1位百分数
+  outputFormat: string
+}
+
+export interface RankConfigResponse {
+  rankOptions: RankConfigItem[]
+}
+
+// 排名相关
+export interface RankItem {
+  steamId: string
+  nickname: string
+  value: number
+  count: number
+}
+
+export interface RankResponse {
+  minValue: number
+  maxValue: number
+  players: RankItem[]
+}
+
+export interface RankQueryParams {
+  rankName: string
+  timeType: string
+}
 
 // 认证 API 接口
 export const authAPI = {
-  // 获取用户信息（需要 token）
-  getInfo: (): Promise<UserInfo> => {
-    return apiClient.post('/api/auth/info')
+  // 验证 Token 是否有效
+  verify: (): Promise<VerifyTokenResponse> => {
+    return apiClient.post('/api/auth/verify')
+  },
+
+  // 获取用户显示名称
+  getInfoName: (): Promise<InfoNameResponse> => {
+    return apiClient.post('/api/auth/info/name')
+  },
+
+  // 获取用户绑定的 Steam ID
+  getInfoSteamId: (): Promise<InfoSteamIdResponse> => {
+    return apiClient.post('/api/auth/info/steamid')
   },
 
   // 初始化登录，获取 token 和验证码
@@ -107,5 +165,26 @@ export const commonAPI = {
   // 获取玩家基础信息
   getPlayerBase: (steamId: string): Promise<PlayerBase> => {
     return apiClient.post('/api/player/base', { steamId: steamId })
+  }
+}
+
+// 配置 API 接口
+export const configAPI = {
+  // 获取支持的时间范围类型
+  getTimeTypes: (): Promise<TimeResponse> => {
+    return apiClient.post('/api/config/time')
+  },
+
+  // 获取排名配置
+  getRankConfig: (): Promise<RankConfigResponse> => {
+    return apiClient.post('/api/config/rank')
+  }
+}
+
+// 排名 API 接口
+export const rankAPI = {
+  // 获取排名列表
+  getRankList: (params: RankQueryParams): Promise<RankResponse> => {
+    return apiClient.post('/api/rank', params)
   }
 }

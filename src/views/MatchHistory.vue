@@ -1,9 +1,5 @@
 <template>
   <div class="history-container">
-    <div class="history-header">
-      <h2>比赛历史记录</h2>
-    </div>
-
     <div class="query-section">
       <div class="query-form">
         <div class="form-group">
@@ -13,12 +9,9 @@
         <div class="form-group">
           <label>时间范围</label>
           <select v-model="queryTimeType" class="form-select">
-            <option value="今日">今日</option>
-            <option value="昨日">昨日</option>
-            <option value="本周">本周</option>
-            <option value="本赛季">本赛季</option>
-            <option value="上赛季">上赛季</option>
-            <option value="全部">全部</option>
+            <option v-for="timeType in timeTypes" :key="timeType" :value="timeType">
+              {{ timeType }}
+            </option>
           </select>
         </div>
       </div>
@@ -141,10 +134,9 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { commonAPI, type MatchHistoryResponse, type PlayerBase } from '../api'
+import { authAPI, commonAPI, configAPI, type MatchHistoryResponse, type PlayerBase } from '../api'
 import { ElMessage } from 'element-plus'
 import { watchDebounced } from '@vueuse/core'
-import { getCachedUserInfo } from '../router'
 import RankBadge from '../components/RankBadge.vue'
 
 const route = useRoute()
@@ -155,27 +147,45 @@ const loading = ref<boolean>(false)
 const error = ref<string | null>(null)
 const historyData = ref<MatchHistoryResponse | null>(null)
 const playerInfo = ref<PlayerBase | null>(null)
+const timeTypes = ref<string[]>([])
 
 const querySteamId = ref<string>(route.query.steamId as string || '')
-const queryTimeType = ref<string>(route.query.timeType as string || '全部')
+const queryTimeType = ref<string>(route.query.timeType as string || '')
 const currentPage = ref<number>(Number(route.query.page) || 1)
 const pageSize = ref<number>(20)
 
 onMounted(async () => {
-  // 如果 URL 中没有 steamId，使用缓存的用户信息中的 steamId
+  // 获取时间类型列表
+  try {
+    const timeTypeResponse = await configAPI.getTimeTypes()
+    timeTypes.value = timeTypeResponse.timeTypes
+    // 设置默认时间类型为最后一个
+    if (!queryTimeType.value && timeTypes.value.length > 0) {
+      queryTimeType.value = timeTypes.value[timeTypes.value.length - 1]
+    }
+  } catch (err) {
+    console.error('获取时间类型失败:', err)
+    timeTypes.value = []
+  }
+
+  // 如果 URL 中没有 steamId，直接调用 API 获取
   if (!querySteamId.value) {
-    const user = getCachedUserInfo()
-    if (user?.steamId) {
-      querySteamId.value = user.steamId
-      // 更新 URL，触发查询
-      await router.push({
-        path: '/history',
-        query: {
-          steamId: querySteamId.value,
-          timeType: queryTimeType.value,
-          page: 1
-        }
-      })
+    try {
+      const result = await authAPI.getInfoSteamId()
+      if (result.steamId) {
+        querySteamId.value = result.steamId
+        // 更新 URL，触发查询
+        await router.push({
+          path: '/history',
+          query: {
+            steamId: querySteamId.value,
+            timeType: queryTimeType.value,
+            page: 1
+          }
+        })
+      }
+    } catch (err) {
+      console.error('获取 Steam ID 失败:', err)
     }
   } else {
     // URL 中已经有 steamId，直接获取玩家信息和历史记录
@@ -332,19 +342,6 @@ watch(() => route.query, async (newQuery) => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.history-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.history-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: #111827;
-  font-weight: 500;
 }
 
 .query-section {

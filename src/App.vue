@@ -18,6 +18,10 @@
           <History :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">历史</span>
         </router-link>
+        <router-link to="/rank" class="nav-item" @click="mobileMenuOpen = false">
+          <BarChart3 :size="20" :stroke-width="2" />
+          <span v-show="!sidebarCollapsed">排名</span>
+        </router-link>
       </nav>
       <div class="sidebar-toggle hidden-sm-and-down" @click="sidebarCollapsed = !sidebarCollapsed">
         <ChevronLeft v-if="!sidebarCollapsed" :size="20" :stroke-width="2" />
@@ -34,7 +38,7 @@
         </div>
         <div class="header-right">
           <div class="user-info hidden-sm-and-down">
-            <span>{{ userInfo?.showName || '用户' }}</span>
+            <span>{{ showName }}</span>
           </div>
           <el-button class="logout-btn" @click="handleLogout">
             <LogOut :size="18" :stroke-width="2" />
@@ -49,25 +53,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch, watchEffect } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History } from 'lucide-vue-next'
-import { type UserInfo } from './api'
-import { getCachedUserInfo } from './router'
+import { authAPI } from './api'
 
 const route = useRoute()
 const router = useRouter()
 const mobileMenuOpen = ref<boolean>(false)
-const sidebarCollapsed = ref<boolean>(false)
-const userInfo = ref<UserInfo | null>(null)
+const sidebarCollapsed = ref<boolean>(localStorage.getItem('sidebarCollapsed') !== 'false')
+const showName = ref<string>('用户')
 
 const pageTitle = computed<string>(() => {
   const titles: Record<string, string> = {
     '/': '主页',
     '/data': '数据',
-    '/history': '历史'
+    '/history': '历史',
+    '/rank': '排名'
   }
   return titles[route.path] || 'Dashboard'
+})
+
+// 监听sidebarCollapsed变化，保存到localStorage
+watch(sidebarCollapsed, (newValue) => {
+  localStorage.setItem('sidebarCollapsed', String(newValue))
 })
 
 const handleLogout = (): void => {
@@ -75,14 +84,13 @@ const handleLogout = (): void => {
   router.push('/login')
 }
 
-onMounted(() => {
-  // 使用 watchEffect 监听缓存的用户信息变化
-  watchEffect(() => {
-    const cached = getCachedUserInfo()
-    if (cached) {
-      userInfo.value = cached
-    }
-  })
+onMounted(async () => {
+  try {
+    const result = await authAPI.getInfoName()
+    showName.value = result.showName
+  } catch (err) {
+    console.error('获取用户名失败:', err)
+  }
 })
 
 // 路由变化时关闭移动菜单

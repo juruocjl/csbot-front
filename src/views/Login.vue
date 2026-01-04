@@ -113,7 +113,7 @@ const checkLogin = async (): Promise<void> => {
   checking.value = true
   
   try {
-    await authAPI.getInfo()
+    await authAPI.verify()
     // 登录成功，跳转回之前的页面或首页
     const redirect = route.query.redirect as string || '/'
     router.push(redirect)
@@ -137,7 +137,7 @@ const useManualToken = async (): Promise<void> => {
 
   try {
     localStorage.setItem('token', token)
-    await authAPI.getInfo()
+    await authAPI.verify()
     const redirect = route.query.redirect as string || '/'
     router.push(redirect)
   } catch (error) {

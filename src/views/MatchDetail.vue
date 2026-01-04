@@ -126,6 +126,13 @@
 								/>
 							</template>
 						</el-table-column>
+						<el-table-column label="分数变化" align="center">
+							<template #default="{ row }">
+								<span :class="{ 'value-positive': Number(row.pvpScoreChange) > 0, 'value-negative': Number(row.pvpScoreChange) < 0 }">
+									{{ Number(row.pvpScoreChange) > 0 ? '+' : '' }}{{ row.pvpScoreChange }}
+								</span>
+							</template>
+						</el-table-column>
 					</el-table>
 				</div>
 			</div>
