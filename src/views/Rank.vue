@@ -47,18 +47,48 @@
           </el-table-column>
           <el-table-column label="头像" align="center" width="80">
             <template #default="{ row }">
-              <el-avatar :src="`/imgs/avatar/${row.steamId}.png`" :alt="row.nickname" :size="40"></el-avatar>
+              <router-link :to="`/data?steamId=${row.steamId}`" class="avatar-link">
+                <el-avatar :src="`/imgs/avatar/${row.steamId}.png`" :alt="row.nickname" :size="40"></el-avatar>
+              </router-link>
             </template>
           </el-table-column>
           <el-table-column label="昵称" align="left" width="150">
             <template #default="{ row }">
-              <div class="nickname-cell">{{ row.nickname }}</div>
+              <router-link :to="`/data?steamId=${row.steamId}`" class="nickname-link">
+                <div class="nickname-cell">{{ row.nickname }}</div>
+              </router-link>
             </template>
           </el-table-column>
-          <el-table-column label="数值" align="center" min-width="220">
+          <el-table-column label="进度条" align="center" min-width="200">
             <template #default="{ row }">
               <div class="value-bar-container">
-                <div class="value-bar">
+                <!-- 当min<0<max时，分别显示负数段和正数段 -->
+                <div v-if="rankData && rankData.minValue < 0 && rankData.maxValue > 0" class="value-bar-split">
+                  <!-- 负数段容器 -->
+                  <div class="negative-container" :style="{ width: getNegativeBarWidth() + '%' }">
+                    <div 
+                      class="value-bar-fill negative" 
+                      :style="{ 
+                        width: getNegativeProgressPercentage(row.value) + '%',
+                        backgroundColor: getBarColor(getProgressPercentage(row.value))
+                      }"
+                    ></div>
+                  </div>
+                  <!-- 正数段容器 -->
+                  <div class="positive-container" :style="{ width: getPositiveBarWidth() + '%' }">
+                    <div 
+                      class="value-bar-fill positive" 
+                      :style="{ 
+                        width: getPositiveProgressPercentage(row.value) + '%',
+                        backgroundColor: getBarColor(getProgressPercentage(row.value))
+                      }"
+                    ></div>
+                  </div>
+                  <!-- 平均值线 -->
+                  <div class="average-line" :style="{ left: getAveragePercentage() + '%' }"></div>
+                </div>
+                <!-- 普通情况 -->
+                <div v-else class="value-bar">
                   <div 
                     class="value-bar-fill" 
                     :style="{ 
@@ -66,9 +96,15 @@
                       backgroundColor: getBarColor(getProgressPercentage(row.value))
                     }"
                   ></div>
+                  <!-- 平均值线 -->
+                  <div class="average-line" :style="{ left: getAveragePercentage() + '%' }"></div>
                 </div>
-                <span class="value-text">{{ formatValue(row.value) }}</span>
               </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="数值" align="center" width="100">
+            <template #default="{ row }">
+              <div class="value-text">{{ formatValue(row.value) }}</div>
             </template>
           </el-table-column>
           <el-table-column label="场次" align="center" width="80">
@@ -161,7 +197,7 @@ watch([queryRankName, queryTimeType], async ([newRankName, newTimeType]) => {
 
   // 更新URL参数
   if (newRankName && newTimeType) {
-    await router.push({
+    await router.replace({
       path: '/rank',
       query: {
         rankName: newRankName,
@@ -208,6 +244,50 @@ const getProgressPercentage = (value: number): number => {
   return ((value - minValue) / (maxValue - minValue)) * 100
 }
 
+// 获取负数段占整个进度条的宽度百分比
+const getNegativeBarWidth = (): number => {
+  if (!rankData.value || rankData.value.minValue >= 0) return 0
+  const totalRange = rankData.value.maxValue - rankData.value.minValue
+  const negativeRange = 0 - rankData.value.minValue
+  return (negativeRange / totalRange) * 100
+}
+
+// 获取正数段占整个进度条的宽度百分比
+const getPositiveBarWidth = (): number => {
+  if (!rankData.value || rankData.value.maxValue <= 0) return 0
+  const totalRange = rankData.value.maxValue - rankData.value.minValue
+  const positiveRange = rankData.value.maxValue
+  return (positiveRange / totalRange) * 100
+}
+
+// 获取负数段百分比（当min<0时）
+const getNegativeProgressPercentage = (value: number): number => {
+  if (!rankData.value || rankData.value.minValue >= 0) return 0
+  
+  if (value <= 0) {
+    // 负数：从value到0，占负数范围的百分比
+    const negativeRange = 0 - rankData.value.minValue
+    const valueInNegativeRange = (0 - value) / negativeRange
+    return valueInNegativeRange * 100
+  }
+  // 正数不显示在负数段
+  return 0
+}
+
+// 获取正数段百分比（当max>0时）
+const getPositiveProgressPercentage = (value: number): number => {
+  if (!rankData.value || rankData.value.maxValue <= 0) return 0
+  
+  if (value >= 0) {
+    // 正数：从0到value，占正数范围的百分比
+    const positiveRange = rankData.value.maxValue
+    const valueInPositiveRange = value / positiveRange
+    return valueInPositiveRange * 100
+  }
+  // 负数不显示在正数段
+  return 0
+}
+
 const getBarColor = (percentage: number): string => {
   // 使用HSL颜色空间实现平滑渐变
   // 红色(0°) -> 绿色(120°)
@@ -215,6 +295,19 @@ const getBarColor = (percentage: number): string => {
   const saturation = 75
   const lightness = 50
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`
+}
+
+// 计算平均值
+const getAverageValue = (): number => {
+  if (!rankData.value || rankData.value.players.length === 0) return 0
+  const sum = rankData.value.players.reduce((acc, player) => acc + player.value, 0)
+  return sum / rankData.value.players.length
+}
+
+// 获取平均值在整个进度条中的百分比位置
+const getAveragePercentage = (): number => {
+  const average = getAverageValue()
+  return getProgressPercentage(average)
 }
 
 const formatValue = (value: number): string => {
@@ -387,17 +480,62 @@ const currentRankConfig = computed<RankConfigItem | undefined>(() => {
 
 .value-bar-container {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  align-items: stretch;
+  gap: 0;
   width: 100%;
+}
+
+.value-bar-split {
+  flex: 1;
+  height: 24px;
+  background-color: transparent;
+  border-radius: 3px;
+  overflow: visible;
+  display: flex;
+  position: relative;
+  align-items: center;
+}
+
+.negative-container {
+  height: 6px;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #f3f4f6;
+}
+
+.positive-container {
+  height: 6px;
+  display: flex;
+  justify-content: flex-start;
+  background-color: #f3f4f6;
 }
 
 .value-bar {
   flex: 1;
-  height: 6px;
-  background-color: #e5e7eb;
+  height: 24px;
+  background-color: transparent;
   border-radius: 3px;
-  overflow: hidden;
+  overflow: visible;
+  display: flex;
+  position: relative;
+  align-items: center;
+}
+
+.value-bar > div:first-child {
+  height: 6px;
+  flex: 0 0 auto;
+}
+
+.average-line {
+  position: absolute;
+  top: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 24px;
+  background-color: #374151;
+  border-radius: 1px;
+  margin-top: -12px;
+  z-index: 10;
 }
 
 .value-bar-fill {
@@ -420,9 +558,26 @@ const currentRankConfig = computed<RankConfigItem | undefined>(() => {
   text-overflow: ellipsis;
 }
 
-.rank-value {
-  font-weight: 500;
+.avatar-link {
+  display: inline-flex;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  text-decoration: none;
+}
+
+.avatar-link:hover {
+  opacity: 0.7;
+}
+
+.nickname-link {
   color: #3b82f6;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nickname-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
 }
 
 :deep(.el-table) {

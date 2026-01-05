@@ -15,14 +15,6 @@
 		</div>
 
 		<div v-else-if="matchData" class="match-content">
-			<div class="match-header">
-				<el-button @click="goBack" class="back-btn-header">
-					<ChevronLeft :size="20" />
-					返回
-				</el-button>
-				<h2>比赛详情</h2>
-			</div>
-
 			<div class="match-info-card">
 				<div class="info-row">
 					<div class="info-item">
@@ -77,17 +69,22 @@
 						</el-table-column>
 						<el-table-column label="头像" align="center" width="80">
 							<template #default="{ row }">
-							<el-avatar
-								:src="`/imgs/avatar/${row.steamId}.png`"
-								:alt="row.nickname || row.steamId"
-								shape="circle"
+							<router-link :to="`/data?steamId=${row.steamId}`" class="avatar-link">
+								<el-avatar
+									:src="`/imgs/avatar/${row.steamId}.png`"
+									:alt="row.nickname || row.steamId"
+									:size="40"
+									shape="circle"
 									@error="handleImageError"
 								/>
-							</template>
-						</el-table-column>
-						<el-table-column label="昵称" min-width="90" align="center" class-name="hidden-sm-and-down">
-							<template #default="{ row }">
+							</router-link>
+						</template>
+					</el-table-column>
+					<el-table-column label="昵称" min-width="90" align="center">
+						<template #default="{ row }">
+							<router-link :to="`/data?steamId=${row.steamId}`" class="nickname-link">
 								{{ row.nickname }}
+							</router-link>
 							</template>
 						</el-table-column>
 						<el-table-column label="Rating" align="center">
@@ -119,11 +116,13 @@
 						</el-table-column>
 						<el-table-column label="段位" min-width="110" align="center">
 							<template #default="{ row }">
-								<RankBadge 
+              					<div style="transform: scale(0.75); transform-origin: center; display: inline-block;">
+									<RankBadge 
 									:pvp-score="row.pvpScore" 
 									:pvp-stars="row.pvpStars" 
 									:season="matchData?.season" 
-								/>
+									/>
+								</div>
 							</template>
 						</el-table-column>
 						<el-table-column label="分数变化" align="center">
@@ -369,38 +368,6 @@ onMounted(() => {
 	display: flex;
 	flex-direction: column;
 	gap: 1.5rem;
-}
-
-.match-header {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
-}
-
-:deep(.back-btn-header) {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	padding: 0.5rem 1rem !important;
-	background: white !important;
-	border: 1px solid #e5e7eb !important;
-	border-radius: 4px;
-	color: #374151 !important;
-	font-size: 0.9375rem;
-	cursor: pointer;
-	transition: all 0.2s;
-}
-
-:deep(.back-btn-header:hover) {
-	background: #f9fafb !important;
-	border-color: #d1d5db !important;
-}
-
-.match-header h2 {
-	margin: 0;
-	font-size: 1.5rem;
-	color: #111827;
-	font-weight: 500;
 }
 
 .match-info-card {
@@ -667,6 +634,28 @@ onMounted(() => {
 
 :deep(.merged-first.team-2-row .el-table__cell:first-child) {
 	background: #f59e0b !important;
+}
+
+.avatar-link,
+.nickname-link {
+	cursor: pointer;
+	transition: opacity 0.2s;
+	display: inline-block;
+	text-decoration: none;
+	color: inherit;
+}
+
+.avatar-link:hover {
+	opacity: 0.7;
+}
+
+.nickname-link {
+	color: #6366f1;
+}
+
+.nickname-link:hover {
+	color: #4f46e5;
+	text-decoration: underline;
 }
 
 @media (max-width: 768px) {

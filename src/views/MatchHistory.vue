@@ -19,9 +19,13 @@
       <!-- 玩家基本信息 -->
       <div v-if="playerInfo" class="player-info">
         <div class="player-card">
-          <el-avatar :src="`/imgs/avatar/${querySteamId}.png`" :alt="playerInfo.nickname" :size="64"></el-avatar>
+          <router-link :to="`/data?steamId=${querySteamId}`" class="avatar-link">
+            <el-avatar :src="`/imgs/avatar/${querySteamId}.png`" :alt="playerInfo.nickname" :size="64" @error="handleImageError"></el-avatar>
+          </router-link>
           <div class="player-details">
-            <h3>{{ playerInfo.nickname }}</h3>
+            <router-link :to="`/data?steamId=${querySteamId}`" class="nickname-link">
+              <h3>{{ playerInfo.nickname }}</h3>
+            </router-link>
             <p class="last-update">更新于：{{ formatTimestamp(playerInfo.lastUpdate) }}</p>
           </div>
         </div>
@@ -159,51 +163,59 @@ onMounted(async () => {
   try {
     const timeTypeResponse = await configAPI.getTimeTypes()
     timeTypes.value = timeTypeResponse.timeTypes
-    // 设置默认时间类型为最后一个
-    if (!queryTimeType.value && timeTypes.value.length > 0) {
-      queryTimeType.value = timeTypes.value[timeTypes.value.length - 1]
-    }
   } catch (err) {
     console.error('获取时间类型失败:', err)
     timeTypes.value = []
   }
-
-  // 如果 URL 中没有 steamId，直接调用 API 获取
-  if (!querySteamId.value) {
-    try {
-      const result = await authAPI.getInfoSteamId()
-      if (result.steamId) {
-        querySteamId.value = result.steamId
-        // 更新 URL，触发查询
-        await router.push({
-          path: '/history',
-          query: {
-            steamId: querySteamId.value,
-            timeType: queryTimeType.value,
-            page: 1
-          }
-        })
-      }
-    } catch (err) {
-      console.error('获取 Steam ID 失败:', err)
-    }
-  } else {
-    // URL 中已经有 steamId，直接获取玩家信息和历史记录
+  
+  if (querySteamId.value) {
     try {
       playerInfo.value = await commonAPI.getPlayerBase(querySteamId.value)
     } catch (err) {
       console.error('获取玩家信息失败:', err)
       playerInfo.value = null
     }
-    
-    // 加载历史记录
+  }
+
+  if (queryTimeType.value && querySteamId.value) {
+    // 如果 URL 中已有参数，直接加载数据
+    try {
+      playerInfo.value = await commonAPI.getPlayerBase(querySteamId.value)
+    } catch (err) {
+      console.error('获取玩家信息失败:', err)
+      playerInfo.value = null
+    }
     await loadHistoryData()
+    return
+  }
+  
+  // 如果 URL 中没有参数，设置默认值
+  if (!queryTimeType.value && timeTypes.value.length > 0) {
+    queryTimeType.value = timeTypes.value[timeTypes.value.length - 1]
+  }
+  
+  if (!querySteamId.value) {
+    try {
+      const result = await authAPI.getInfoSteamId()
+      if (result.steamId) {
+        querySteamId.value = result.steamId
+        // 设置完值后，watchDebounced 会自动触发 queryHistory()，不需要手动 replace
+      }
+    } catch (err) {
+      console.error('获取 Steam ID 失败:', err)
+    }
   }
 })
 
 const formatTimestamp = (timestamp: number): string => {
   const date = new Date(timestamp * 1000)
   return date.toLocaleString('zh-CN')
+}
+
+const handleImageError = (e: Event): void => {
+  const img = e.target as HTMLImageElement
+  img.src =
+    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect fill="%23e5e7eb" width="64" height="64"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="22"%3E?%3C/text%3E%3C/svg%3E'
 }
 
 const formatMonthDay = (timestamp: number): string => {
@@ -285,7 +297,7 @@ const queryHistory = async (resetPage: boolean = false): Promise<void> => {
   }
 
   // 只更新URL参数，由 route.query 监听触发实际查询
-  await router.push({
+  await router.replace({
     path: '/history',
     query: {
       steamId: querySteamId.value.trim(),
@@ -297,7 +309,7 @@ const queryHistory = async (resetPage: boolean = false): Promise<void> => {
 
 const onPageChange = async (page: number): Promise<void> => {
   // 更新URL参数，由 route.query 监听触发查询
-  await router.push({
+  await router.replace({
     path: '/history',
     query: {
       steamId: querySteamId.value.trim(),
@@ -558,6 +570,28 @@ watch(() => route.query, async (newQuery) => {
   display: flex;
   justify-content: center;
   margin-top: 1rem;
+}
+
+.avatar-link,
+.nickname-link {
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: inline-block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.avatar-link:hover {
+  opacity: 0.7;
+}
+
+.nickname-link {
+  color: #6366f1;
+}
+
+.nickname-link:hover {
+  color: #4f46e5;
+  text-decoration: underline;
 }
 
 :deep(.el-pagination) {

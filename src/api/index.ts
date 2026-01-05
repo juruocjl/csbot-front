@@ -89,6 +89,103 @@ export interface PlayerBase {
   lastUpdate: number
 }
 
+export interface PlayerDetailItem {
+  value: number
+  minValue: number
+  maxValue: number
+  avgValue: number
+}
+
+export interface BaseRatingDetail {
+  pwRating: PlayerDetailItem
+  rws: PlayerDetailItem
+  pwRatingTAvg: PlayerDetailItem
+  pwRatingCtAvg: PlayerDetailItem
+  kastPerRound: PlayerDetailItem
+}
+
+export interface FirePowerDetail {
+  score: number
+  killsPerRound: PlayerDetailItem
+  killsPerWinRound: PlayerDetailItem
+  damagePerRound: PlayerDetailItem
+  damagePerRoundWin: PlayerDetailItem
+  roundsWithAKill: PlayerDetailItem
+  multiKillRoundsPercentage: PlayerDetailItem
+  we: PlayerDetailItem
+  pistolRoundRating: PlayerDetailItem
+}
+
+export interface MarksmanshipDetail {
+  score: number
+  headshotRate: PlayerDetailItem
+  killTime: PlayerDetailItem
+  smHitRate: PlayerDetailItem
+  reactionTime: PlayerDetailItem
+  rapidStopRate: PlayerDetailItem
+}
+
+export interface FollowUpShotDetail {
+  score: number
+  savedTeammatePerRound: PlayerDetailItem
+  tradeKillsPerRound: PlayerDetailItem
+  tradeKillsPercentage: PlayerDetailItem
+  assistKillsPercentage: PlayerDetailItem
+  damagePerKill: PlayerDetailItem
+}
+
+export interface FirstBloodDetail {
+  score: number
+  firstHurt: PlayerDetailItem
+  winAfterOpeningKill: PlayerDetailItem
+  firstSuccessRate: PlayerDetailItem
+  firstKill: PlayerDetailItem
+  firstRate: PlayerDetailItem
+}
+
+export interface ItemDetail {
+  score: number
+  itemRate: PlayerDetailItem
+  utilityDamagePerRounds: PlayerDetailItem
+  flashAssistPerRound: PlayerDetailItem
+  flashbangFlashRate: PlayerDetailItem
+  timeOpponentFlashedPerRound: PlayerDetailItem
+}
+
+export interface ClutchDetail {
+  score: number
+  v1WinPercentage: PlayerDetailItem
+  clutchPointsPerRound: PlayerDetailItem
+  lastAlivePercentage: PlayerDetailItem
+  timeAlivePerRound: PlayerDetailItem
+  savesPerRoundLoss: PlayerDetailItem
+}
+
+export interface SniperDetail {
+  score: number
+  sniperFirstKillPercentage: PlayerDetailItem
+  sniperKillsPercentage: PlayerDetailItem
+  sniperKillPerRound: PlayerDetailItem
+  roundsWithSniperKillsPercentage: PlayerDetailItem
+  sniperMultipleKillRoundPercentage: PlayerDetailItem
+}
+
+export interface PlayerDetailResponse {
+  pvpScore: number
+  pvpStars: number
+  cnt: number
+  winRate: PlayerDetailItem
+  seasonId: string
+  baseRating: BaseRatingDetail
+  firePower: FirePowerDetail
+  marksmanship: MarksmanshipDetail
+  followUpShot: FollowUpShotDetail
+  firstBlood: FirstBloodDetail
+  item: ItemDetail
+  clutch: ClutchDetail
+  sniper: SniperDetail
+}
+
 // 配置相关
 export interface TimeResponse {
   timeTypes: string[]
@@ -165,6 +262,11 @@ export const commonAPI = {
   // 获取玩家基础信息
   getPlayerBase: (steamId: string): Promise<PlayerBase> => {
     return apiClient.post('/api/player/base', { steamId: steamId })
+  },
+
+  // 获取玩家详细信息
+  getPlayerDetail: (steamId: string): Promise<PlayerDetailResponse> => {
+    return apiClient.post('/api/player/detail', { steamId: steamId })
   }
 }
 

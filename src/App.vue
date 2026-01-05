@@ -34,6 +34,10 @@
           <Menu :size="20" :stroke-width="2" />
         </el-button>
         <div class="header-left">
+          <el-button @click="router.back()" class="back-btn-global">
+            <ChevronLeft :size="20" />
+            返回
+          </el-button>
           <h1>{{ pageTitle }}</h1>
         </div>
         <div class="header-right">
@@ -69,7 +73,8 @@ const pageTitle = computed<string>(() => {
     '/': '主页',
     '/data': '数据',
     '/history': '历史',
-    '/rank': '排名'
+    '/rank': '排名',
+    '/match': '比赛详情',
   }
   return titles[route.path] || 'Dashboard'
 })
@@ -243,6 +248,32 @@ watch(() => route.path, () => {
   font-size: 1.5rem;
   color: #111827;
   font-weight: 500;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+:deep(.back-btn-global) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem !important;
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 4px;
+  color: #374151 !important;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+:deep(.back-btn-global:hover) {
+  background: #f9fafb !important;
+  border-color: #d1d5db !important;
 }
 
 .header-right {

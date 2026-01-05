@@ -18,10 +18,19 @@
 		<!-- 文字 -->
 		<text 
 			x="24" 
-			y="26" 
+			y="24" 
 			class="rank-text"
 		>
 			{{ rankData.label }}
+		</text>
+		<!-- 星数 -->
+		<text 
+			v-if="rankData.stars !== null"
+			x="24" 
+			y="35" 
+			class="rank-stars"
+		>
+			★{{ rankData.stars }}
 		</text>
 	</svg>
 </template>
@@ -31,6 +40,7 @@ import { computed } from 'vue'
 
 interface RankInfo {
 	label: string
+	stars: number | null
 	class: string
 	progress: number
 }
@@ -64,7 +74,7 @@ const rankData = computed((): RankInfo => {
 	const legacy = Number.isFinite(seasonNum) && seasonNum <= 20
 
 	if (!Number.isFinite(r) || r === 0) {
-		return { label: '?', class: 'unknown', progress: 0 }
+		return { label: '?', stars: null, class: 'unknown', progress: 0 }
 	}
 
 	if (legacy) {
@@ -83,41 +93,41 @@ const rankData = computed((): RankInfo => {
 		for (const tier of ranges) {
 			if (r <= tier.max) {
 				const progress = clamp(((r - tier.base) / tier.span) * 100, 0, 100)
-				return { label: tier.label, class: '', progress }
+				return { label: tier.label, stars: null, class: '', progress }
 			}
 		}
 
 		// Above 2400 -> S, progress uses pvpstar if available else max
 		const maxStar = 50
 		const progress = clamp((Number.isFinite(s) ? s : 0) / maxStar * 100, 0, 100)
-		return { label: 'S', class: 'elite', progress }
+		return { label: 'S', stars: null, class: 'elite', progress }
 	}
 
 	// Modern tiers (> S20): keep star variants
 	if (r >= 2401) {
 		const maxStar = 50
 		const progress = clamp((Number.isFinite(s) ? s : 0) / maxStar * 100, 0, 100)
-		return { label: `S★${Number.isFinite(s) ? s : 0}`, class: 'elite', progress }
+		return { label: 'S', stars: Number.isFinite(s) ? Math.floor(s) : 0, class: 'elite', progress }
 	}
 	if (r >= 2201)
-		return { label: 'A+', class: 'elite', progress: clamp(((r - 2201) / (2400 - 2201)) * 100, 0, 100) }
+		return { label: 'A+', stars: null, class: 'elite', progress: clamp(((r - 2201) / (2400 - 2201)) * 100, 0, 100) }
 	if (r >= 2051)
-		return { label: 'A+', class: '', progress: clamp(((r - 2051) / (2200 - 2051)) * 100, 0, 100) }
+		return { label: 'A+', stars: null, class: '', progress: clamp(((r - 2051) / (2200 - 2051)) * 100, 0, 100) }
 	if (r >= 1901)
-		return { label: 'A', class: '', progress: clamp(((r - 1901) / (2050 - 1901)) * 100, 0, 100) }
+		return { label: 'A', stars: null, class: '', progress: clamp(((r - 1901) / (2050 - 1901)) * 100, 0, 100) }
 	if (r >= 1751)
-		return { label: 'B+', class: 'elite', progress: clamp(((r - 1751) / (1900 - 1751)) * 100, 0, 100) }
+		return { label: 'B+', stars: null, class: 'elite', progress: clamp(((r - 1751) / (1900 - 1751)) * 100, 0, 100) }
 	if (r >= 1601)
-		return { label: 'B+', class: '', progress: clamp(((r - 1601) / (1750 - 1601)) * 100, 0, 100) }
+		return { label: 'B+', stars: null, class: '', progress: clamp(((r - 1601) / (1750 - 1601)) * 100, 0, 100) }
 	if (r >= 1451)
-		return { label: 'B', class: '', progress: clamp(((r - 1451) / (1600 - 1451)) * 100, 0, 100) }
+		return { label: 'B', stars: null, class: '', progress: clamp(((r - 1451) / (1600 - 1451)) * 100, 0, 100) }
 	if (r >= 1301)
-		return { label: 'C+', class: 'elite', progress: clamp(((r - 1301) / (1450 - 1301)) * 100, 0, 100) }
+		return { label: 'C+', stars: null, class: 'elite', progress: clamp(((r - 1301) / (1450 - 1301)) * 100, 0, 100) }
 	if (r >= 1151)
-		return { label: 'C+', class: '', progress: clamp(((r - 1151) / (1300 - 1151)) * 100, 0, 100) }
+		return { label: 'C+', stars: null, class: '', progress: clamp(((r - 1151) / (1300 - 1151)) * 100, 0, 100) }
 	if (r >= 1001)
-		return { label: 'C', class: '', progress: clamp(((r - 1001) / (1150 - 1001)) * 100, 0, 100) }
-	return { label: 'D', class: '', progress: clamp((r / 1000) * 100, 0, 100) }
+		return { label: 'C', stars: null, class: '', progress: clamp(((r - 1001) / (1150 - 1001)) * 100, 0, 100) }
+	return { label: 'D', stars: null, class: '', progress: clamp((r / 1000) * 100, 0, 100) }
 })
 
 // 圆形周长 = 2πr = 2π*20 ≈ 125.66
@@ -236,6 +246,15 @@ const hexPath = computed(() => {
 	dominant-baseline: middle;
 	fill: currentColor;
 	letter-spacing: 0.5px;
+}
+
+.rank-stars {
+	font-size: 10px;
+	font-weight: 700;
+	text-anchor: middle;
+	dominant-baseline: middle;
+	fill: currentColor;
+	letter-spacing: 0.2px;
 }
 
 .rank-elite {
