@@ -2,8 +2,8 @@
   <el-container class="app-container">
     <el-aside width="auto" class="sidebar" :class="{ collapsed: sidebarCollapsed, active: mobileMenuOpen }">
       <div class="logo">
-        <h2 v-show="!sidebarCollapsed">Dashboard</h2>
-        <h2 v-show="sidebarCollapsed" class="logo-icon">D</h2>
+        <h2 v-show="!sidebarCollapsed">CSBOT</h2>
+        <h2 v-show="sidebarCollapsed" class="logo-icon"><PiggyBank /></h2>
       </div>
       <nav class="nav">
         <router-link to="/" class="nav-item" @click="mobileMenuOpen = false">
@@ -64,7 +64,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Share2 } from 'lucide-vue-next'
+import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Share2, PiggyBank } from 'lucide-vue-next'
 import { authAPI } from './api'
 import UserChoose from './components/UserChoose.vue'
 
@@ -191,6 +191,10 @@ watch(() => route.path, () => {
 .logo .logo-icon {
   text-align: center;
   font-size: 1.5rem;
+}
+
+.logo-icon {
+  width: 24px;
 }
 
 .nav {
