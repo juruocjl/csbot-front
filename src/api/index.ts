@@ -1,81 +1,22 @@
 import apiClient from './client'
+import * as schemas from './schemas'
 
-// 认证相关
-export interface AuthData {
-  token: string
-  code: string
-}
-
-export interface VerifyTokenResponse {
-  isVerified: boolean
-}
-
-export interface InfoNameResponse {
-  showName: string
-}
-
-export interface InfoSteamIdResponse {
-  steamId: string | null
-}
-
-export interface UserInfo {
-  isVerified: boolean
-  showName: string
-  steamId: string | null
-}
+// 使用Zod生成的类型（从schemas.ts导出）
+export type AuthData = schemas.AuthData
+export type VerifyTokenResponse = schemas.VerifyTokenResponse
+export type InfoNameResponse = schemas.InfoNameResponse
+export type InfoSteamIdResponse = schemas.InfoSteamIdResponse
+export type InfoQQResponse = schemas.InfoQQResponse
+export type UserInfo = schemas.UserInfo
+export type SendAuthResponse = schemas.SendAuthResponse
 
 // 比赛相关
-export interface Player {
-  steamId: string
-  nickname?: string
-  team: number
-  rating: number | string
-  we: number | string
-  kills: number | string
-  deaths: number | string
-  assists: number | string
-  legacyScore: number | string
-  pvpScore: number | string
-  pvpScoreChange: number | string
-  pvpStars: number | string
-}
-
-export interface MatchData {
-  matchId: string
-  timestamp: number
-  mode: string
-  season: string | number
-  winTeam: number
-  team1Score: number
-  team2Score: number
-  team1LegacyScore: number | string
-  team2LegacyScore: number | string
-  players: Player[]
-}
+export type Player = schemas.Player
+export type MatchData = schemas.MatchData
 
 // 历史记录相关
-export interface HistoryMatch {
-  matchId: string
-  timeStamp: number
-  season: string
-  mode: string
-  mapName: string
-  team1Score: number
-  team2Score: number
-  team: number
-  winTeam: number
-  rating: number
-  we: number
-  pvpScore: number
-  pvpScoreChange: number
-  legacyDiff: number
-}
-
-export interface MatchHistoryResponse {
-  totCount: number
-  pageSize: number
-  matches: HistoryMatch[]
-}
+export type HistoryMatch = schemas.HistoryMatch
+export type MatchHistoryResponse = schemas.MatchHistoryResponse
 
 export interface HistoryQueryParams {
   steamId: string
@@ -84,140 +25,33 @@ export interface HistoryQueryParams {
 }
 
 // 玩家相关
-export interface PlayerBase {
-  nickname: string
-  lastUpdate: number
-}
-
-export interface PlayerDetailItem {
-  value: number
-  minValue: number
-  maxValue: number
-  avgValue: number
-}
-
-export interface BaseRatingDetail {
-  pwRating: PlayerDetailItem
-  rws: PlayerDetailItem
-  pwRatingTAvg: PlayerDetailItem
-  pwRatingCtAvg: PlayerDetailItem
-  kastPerRound: PlayerDetailItem
-}
-
-export interface FirePowerDetail {
-  score: number
-  killsPerRound: PlayerDetailItem
-  killsPerWinRound: PlayerDetailItem
-  damagePerRound: PlayerDetailItem
-  damagePerRoundWin: PlayerDetailItem
-  roundsWithAKill: PlayerDetailItem
-  multiKillRoundsPercentage: PlayerDetailItem
-  we: PlayerDetailItem
-  pistolRoundRating: PlayerDetailItem
-}
-
-export interface MarksmanshipDetail {
-  score: number
-  headshotRate: PlayerDetailItem
-  killTime: PlayerDetailItem
-  smHitRate: PlayerDetailItem
-  reactionTime: PlayerDetailItem
-  rapidStopRate: PlayerDetailItem
-}
-
-export interface FollowUpShotDetail {
-  score: number
-  savedTeammatePerRound: PlayerDetailItem
-  tradeKillsPerRound: PlayerDetailItem
-  tradeKillsPercentage: PlayerDetailItem
-  assistKillsPercentage: PlayerDetailItem
-  damagePerKill: PlayerDetailItem
-}
-
-export interface FirstBloodDetail {
-  score: number
-  firstHurt: PlayerDetailItem
-  winAfterOpeningKill: PlayerDetailItem
-  firstSuccessRate: PlayerDetailItem
-  firstKill: PlayerDetailItem
-  firstRate: PlayerDetailItem
-}
-
-export interface ItemDetail {
-  score: number
-  itemRate: PlayerDetailItem
-  utilityDamagePerRounds: PlayerDetailItem
-  flashAssistPerRound: PlayerDetailItem
-  flashbangFlashRate: PlayerDetailItem
-  timeOpponentFlashedPerRound: PlayerDetailItem
-}
-
-export interface ClutchDetail {
-  score: number
-  v1WinPercentage: PlayerDetailItem
-  clutchPointsPerRound: PlayerDetailItem
-  lastAlivePercentage: PlayerDetailItem
-  timeAlivePerRound: PlayerDetailItem
-  savesPerRoundLoss: PlayerDetailItem
-}
-
-export interface SniperDetail {
-  score: number
-  sniperFirstKillPercentage: PlayerDetailItem
-  sniperKillsPercentage: PlayerDetailItem
-  sniperKillPerRound: PlayerDetailItem
-  roundsWithSniperKillsPercentage: PlayerDetailItem
-  sniperMultipleKillRoundPercentage: PlayerDetailItem
-}
-
-export interface PlayerDetailResponse {
-  pvpScore: number
-  pvpStars: number
-  cnt: number
-  winRate: PlayerDetailItem
-  seasonId: string
-  baseRating: BaseRatingDetail
-  firePower: FirePowerDetail
-  marksmanship: MarksmanshipDetail
-  followUpShot: FollowUpShotDetail
-  firstBlood: FirstBloodDetail
-  item: ItemDetail
-  clutch: ClutchDetail
-  sniper: SniperDetail
-}
+export type PlayerBase = schemas.PlayerBase
+export type PlayerDetailItem = schemas.PlayerDetailItem
+export type BaseRatingDetail = schemas.BaseRatingDetail
+export type FirePowerDetail = schemas.FirePowerDetail
+export type MarksmanshipDetail = schemas.MarksmanshipDetail
+export type FollowUpShotDetail = schemas.FollowUpShotDetail
+export type FirstBloodDetail = schemas.FirstBloodDetail
+export type ItemDetail = schemas.ItemDetail
+export type ClutchDetail = schemas.ClutchDetail
+export type SniperDetail = schemas.SniperDetail
+export type PlayerDetailResponse = schemas.PlayerDetailResponse
 
 // 配置相关
-export interface TimeResponse {
-  timeTypes: string[]
-}
+export type TimeResponse = schemas.TimeResponse
+export type RankConfigItem = schemas.RankConfigItem
+export type RankConfigResponse = schemas.RankConfigResponse
 
-export interface RankConfigItem {
-  name: string
-  description: string
-  defaultTimeType: string
-  allowedTimeTypes: string[]
-  // outputFormat: dX 表示保留X位小数, pX 表示保留X位百分数
-  // 例如: "d2" 表示保留2位小数, "p1" 表示保留1位百分数
-  outputFormat: string
-}
-
-export interface RankConfigResponse {
-  rankOptions: RankConfigItem[]
-}
+// 用户相关
+export type UserQQItem = schemas.UserQQItem
+export type UserResponse = schemas.UserResponse
 
 // 排名相关
-export interface RankItem {
-  steamId: string
-  nickname: string
-  value: number
-  count: number
-}
+export type RankItem = schemas.RankItem
+export type RankResponse = schemas.RankResponse
 
-export interface RankResponse {
-  minValue: number
-  maxValue: number
-  players: RankItem[]
-}
+// 状态相关
+export type StatusResponse = schemas.StatusResponse
 
 export interface RankQueryParams {
   rankName: string
@@ -227,66 +61,104 @@ export interface RankQueryParams {
 // 认证 API 接口
 export const authAPI = {
   // 验证 Token 是否有效
-  verify: (): Promise<VerifyTokenResponse> => {
-    return apiClient.post('/api/auth/verify')
+  verify: async (): Promise<VerifyTokenResponse> => {
+    const response = await apiClient.post('/api/auth/verify')
+    return schemas.VerifyTokenResponseSchema.parse(response)
   },
 
   // 获取用户显示名称
-  getInfoName: (): Promise<InfoNameResponse> => {
-    return apiClient.post('/api/auth/info/name')
+  getInfoName: async (): Promise<InfoNameResponse> => {
+    const response = await apiClient.post('/api/auth/info/name')
+    return schemas.InfoNameResponseSchema.parse(response)
   },
 
   // 获取用户绑定的 Steam ID
-  getInfoSteamId: (): Promise<InfoSteamIdResponse> => {
-    return apiClient.post('/api/auth/info/steamid')
+  getInfoSteamId: async (): Promise<InfoSteamIdResponse> => {
+    const response = await apiClient.post('/api/auth/info/steamid')
+    return schemas.InfoSteamIdResponseSchema.parse(response)
+  },
+
+  // 获取用户绑定的 QQ 号
+  getInfoQQ: async (): Promise<InfoQQResponse> => {
+    const response = await apiClient.post('/api/auth/info/qq')
+    return schemas.InfoQQResponseSchema.parse(response)
   },
 
   // 初始化登录，获取 token 和验证码
-  init: (): Promise<AuthData> => {
-    return apiClient.post('/api/auth/init')
+  init: async (): Promise<AuthData> => {
+    const response = await apiClient.post('/api/auth/init')
+    return schemas.AuthDataSchema.parse(response)
+  },
+
+  // 发送登录验证码
+  send: async (path: string): Promise<SendAuthResponse> => {
+    const response = await apiClient.post('/api/auth/send', { path })
+    return schemas.SendAuthResponseSchema.parse(response)
   },
 }
 
 // 通用 API 接口
 export const commonAPI = {
   // 获取比赛详情
-  getMatchInfo: (matchId: string): Promise<MatchData> => {
-    return apiClient.post('/api/match/info', { matchId: matchId })
+  getMatchInfo: async (matchId: string): Promise<MatchData> => {
+    const response = await apiClient.post('/api/match/info', { matchId: matchId })
+    return schemas.MatchDataSchema.parse(response)
   },
 
   // 获取比赛历史记录
-  getMatchHistory: (params: HistoryQueryParams): Promise<MatchHistoryResponse> => {
-    return apiClient.post('/api/match/history', params)
+  getMatchHistory: async (params: { steamId: string; timeType: string; page: number }): Promise<MatchHistoryResponse> => {
+    const response = await apiClient.post('/api/match/history', params)
+    return schemas.MatchHistoryResponseSchema.parse(response)
   },
 
   // 获取玩家基础信息
-  getPlayerBase: (steamId: string): Promise<PlayerBase> => {
-    return apiClient.post('/api/player/base', { steamId: steamId })
+  getPlayerBase: async (steamId: string): Promise<PlayerBase> => {
+    const response = await apiClient.post('/api/player/base', { steamId: steamId })
+    return schemas.PlayerBaseSchema.parse(response)
   },
 
   // 获取玩家详细信息
-  getPlayerDetail: (steamId: string): Promise<PlayerDetailResponse> => {
-    return apiClient.post('/api/player/detail', { steamId: steamId })
+  getPlayerDetail: async (steamId: string): Promise<PlayerDetailResponse> => {
+    const response = await apiClient.post('/api/player/detail', { steamId: steamId })
+    return schemas.PlayerDetailResponseSchema.parse(response)
   }
 }
 
 // 配置 API 接口
 export const configAPI = {
   // 获取支持的时间范围类型
-  getTimeTypes: (): Promise<TimeResponse> => {
-    return apiClient.post('/api/config/time')
+  getTimeTypes: async (): Promise<TimeResponse> => {
+    const response = await apiClient.post('/api/config/time')
+    return schemas.TimeResponseSchema.parse(response)
   },
 
   // 获取排名配置
-  getRankConfig: (): Promise<RankConfigResponse> => {
-    return apiClient.post('/api/config/rank')
+  getRankConfig: async (): Promise<RankConfigResponse> => {
+    const response = await apiClient.post('/api/config/rank')
+    return schemas.RankConfigResponseSchema.parse(response)
+  },
+
+  // 获取绑定用户列表
+  getUsers: async (): Promise<UserResponse> => {
+    const response = await apiClient.post('/api/config/users')
+    return schemas.UserResponseSchema.parse(response)
   }
 }
 
 // 排名 API 接口
 export const rankAPI = {
   // 获取排名列表
-  getRankList: (params: RankQueryParams): Promise<RankResponse> => {
-    return apiClient.post('/api/rank', params)
+  getRankList: async (params: { rankName: string; timeType: string }): Promise<RankResponse> => {
+    const response = await apiClient.post('/api/rank', params)
+    return schemas.RankResponseSchema.parse(response)
+  }
+}
+
+// 系统状态 API 接口
+export const systemAPI = {
+  // 获取服务器状态
+  getStatus: async (): Promise<StatusResponse> => {
+    const response = await apiClient.post('/api/status')
+    return schemas.StatusResponseSchema.parse(response)
   }
 }

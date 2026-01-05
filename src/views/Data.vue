@@ -12,10 +12,13 @@
         <div class="player-details">
           <h2>{{ playerInfo.nickname }}</h2>
           <p class="steam-id">Steam ID: {{ querySteamId }}</p>
-          <p class="last-update">更新于: {{ formatTimestamp(playerInfo.lastUpdate) }}</p>
-          <router-link :to="`/history?steamId=${querySteamId}`" class="view-matches-btn">
-            <el-button type="primary" size="small">查看比赛记录</el-button>
-          </router-link>
+          <p class="last-update">比赛数据更新于: {{ formatTimestamp(playerInfo.lastUpdate) }}</p>
+          <div style="display: flex; gap: 0.5rem;">
+            <router-link :to="`/history?steamId=${querySteamId}`" >
+              <el-button type="primary" :size="80">查看比赛记录</el-button>
+            </router-link>
+            <UserChoose targetPath="/data" />
+          </div>
         </div>
       </div>
     </div>
@@ -52,6 +55,18 @@
               <span class="label">胜率</span>
               <div class="inline-value">
                 <span class="val">{{ formatValue(playerDetail.winRate) }}</span>
+              </div>
+            </div>
+            <div class="stat-item">
+              <span class="label">更新于</span>
+              <div class="inline-value">
+                <span class="val">{{ formatTimestamp(playerDetail.lastUpdate) }}</span>
+              </div>
+            </div>
+            <div class="stat-item">
+              <span class="label">赛季</span>
+              <div class="inline-value">
+                <span class="val">{{ playerDetail.seasonId }}</span>
               </div>
             </div>
           </div>
@@ -112,28 +127,28 @@
           </template>
           <div class="stat-grid">
             <div class="stat-item">
-              <span class="label">场均击杀</span>
+              <span class="label">回均击杀</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.firePower.killsPerRound.value > playerDetail.firePower.killsPerRound.avgValue }">
                 <span class="val">{{ playerDetail.firePower.killsPerRound.value.toFixed(2) }}</span>
                 <span class="avg">/ {{ playerDetail.firePower.killsPerRound.avgValue.toFixed(2) }}</span>
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">胜局场均击杀</span>
+              <span class="label">胜局回均击杀</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.firePower.killsPerWinRound.value > playerDetail.firePower.killsPerWinRound.avgValue }">
                 <span class="val">{{ playerDetail.firePower.killsPerWinRound.value.toFixed(2) }}</span>
                 <span class="avg">/ {{ playerDetail.firePower.killsPerWinRound.avgValue.toFixed(2) }}</span>
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">场均伤害</span>
+              <span class="label">回均伤害</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.firePower.damagePerRound.value > playerDetail.firePower.damagePerRound.avgValue }">
                 <span class="val">{{ playerDetail.firePower.damagePerRound.value.toFixed(2) }}</span>
                 <span class="avg">/ {{ playerDetail.firePower.damagePerRound.avgValue.toFixed(2) }}</span>
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">胜局场均伤害</span>
+              <span class="label">胜局回均伤害</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.firePower.damagePerRoundWin.value > playerDetail.firePower.damagePerRoundWin.avgValue }">
                 <span class="val">{{ playerDetail.firePower.damagePerRoundWin.value.toFixed(2) }}</span>
                 <span class="avg">/ {{ playerDetail.firePower.damagePerRoundWin.avgValue.toFixed(2) }}</span>
@@ -187,7 +202,7 @@
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">副武器命中率</span>
+              <span class="label">精准度</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.marksmanship.smHitRate.value > playerDetail.marksmanship.smHitRate.avgValue }">
                 <span class="val">{{ (playerDetail.marksmanship.smHitRate.value * 100).toFixed(1) }}%</span>
                 <span class="avg">/ {{ (playerDetail.marksmanship.smHitRate.avgValue * 100).toFixed(1) }}%</span>
@@ -201,7 +216,7 @@
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">快速停枪率</span>
+              <span class="label">急停成功率</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.marksmanship.rapidStopRate.value > playerDetail.marksmanship.rapidStopRate.avgValue }">
                 <span class="val">{{ (playerDetail.marksmanship.rapidStopRate.value * 100).toFixed(1) }}%</span>
                 <span class="avg">/ {{ (playerDetail.marksmanship.rapidStopRate.avgValue * 100).toFixed(1) }}%</span>
@@ -234,7 +249,7 @@
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">首杀率</span>
+              <span class="label">尝试突破率</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.firstBlood.firstRate.value > playerDetail.firstBlood.firstRate.avgValue }">
                 <span class="val">{{ (playerDetail.firstBlood.firstRate.value * 100).toFixed(1) }}%</span>
                 <span class="avg">/ {{ (playerDetail.firstBlood.firstRate.avgValue * 100).toFixed(1) }}%</span>
@@ -281,31 +296,24 @@
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">最后活着占比</span>
+              <span class="label">最后存活率</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.clutch.lastAlivePercentage.value > playerDetail.clutch.lastAlivePercentage.avgValue }">
                 <span class="val">{{ (playerDetail.clutch.lastAlivePercentage.value * 100).toFixed(1) }}%</span>
                 <span class="avg">/ {{ (playerDetail.clutch.lastAlivePercentage.avgValue * 100).toFixed(1) }}%</span>
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">每回合存活时间</span>
+              <span class="label">回均存活时间</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.clutch.timeAlivePerRound.value > playerDetail.clutch.timeAlivePerRound.avgValue }">
                 <span class="val">{{ playerDetail.clutch.timeAlivePerRound.value.toFixed(2) }}s</span>
                 <span class="avg">/ {{ playerDetail.clutch.timeAlivePerRound.avgValue.toFixed(2) }}s</span>
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">每回合残局得分</span>
-              <div class="inline-value" :class="{ 'above-avg': playerDetail.clutch.clutchPointsPerRound.value > playerDetail.clutch.clutchPointsPerRound.avgValue }">
-                <span class="val">{{ playerDetail.clutch.clutchPointsPerRound.value.toFixed(2) }}</span>
-                <span class="avg">/ {{ playerDetail.clutch.clutchPointsPerRound.avgValue.toFixed(2) }}</span>
-              </div>
-            </div>
-            <div class="stat-item">
-              <span class="label">失利回合拯救率</span>
+              <span class="label">失败回合保枪率</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.clutch.savesPerRoundLoss.value > playerDetail.clutch.savesPerRoundLoss.avgValue }">
-                <span class="val">{{ playerDetail.clutch.savesPerRoundLoss.value.toFixed(2) }}</span>
-                <span class="avg">/ {{ playerDetail.clutch.savesPerRoundLoss.avgValue.toFixed(2) }}</span>
+                <span class="val">{{ (playerDetail.clutch.savesPerRoundLoss.value * 100).toFixed(2) }}%</span>
+                <span class="avg">/ {{ (playerDetail.clutch.savesPerRoundLoss.avgValue * 100).toFixed(2) }}%</span>
               </div>
             </div>
           </div>
@@ -368,21 +376,21 @@
           </template>
           <div class="stat-grid">
             <div class="stat-item">
-              <span class="label">每回合拯救队友</span>
+              <span class="label">回均拆火击杀</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.followUpShot.savedTeammatePerRound.value > playerDetail.followUpShot.savedTeammatePerRound.avgValue }">
                 <span class="val">{{ playerDetail.followUpShot.savedTeammatePerRound.value.toFixed(2) }}</span>
                 <span class="avg">/ {{ playerDetail.followUpShot.savedTeammatePerRound.avgValue.toFixed(2) }}</span>
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">每回合补枪击杀</span>
+              <span class="label">回均换命击杀</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.followUpShot.tradeKillsPerRound.value > playerDetail.followUpShot.tradeKillsPerRound.avgValue }">
                 <span class="val">{{ playerDetail.followUpShot.tradeKillsPerRound.value.toFixed(2) }}</span>
                 <span class="avg">/ {{ playerDetail.followUpShot.tradeKillsPerRound.avgValue.toFixed(2) }}</span>
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">补枪击杀占比</span>
+              <span class="label">换命击杀占比</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.followUpShot.tradeKillsPercentage.value > playerDetail.followUpShot.tradeKillsPercentage.avgValue }">
                 <span class="val">{{ (playerDetail.followUpShot.tradeKillsPercentage.value * 100).toFixed(1) }}%</span>
                 <span class="avg">/ {{ (playerDetail.followUpShot.tradeKillsPercentage.avgValue * 100).toFixed(1) }}%</span>
@@ -429,21 +437,21 @@
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">每回合闪白助攻</span>
+              <span class="label">百回合闪白助攻</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.item.flashAssistPerRound.value > playerDetail.item.flashAssistPerRound.avgValue }">
-                <span class="val">{{ playerDetail.item.flashAssistPerRound.value.toFixed(2) }}</span>
-                <span class="avg">/ {{ playerDetail.item.flashAssistPerRound.avgValue.toFixed(2) }}</span>
+                <span class="val">{{ (playerDetail.item.flashAssistPerRound.value * 100).toFixed(2) }}</span>
+                <span class="avg">/ {{ (playerDetail.item.flashAssistPerRound.avgValue * 100).toFixed(2) }}</span>
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">闪光弹命中率</span>
+              <span class="label">有效闪白率</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.item.flashbangFlashRate.value > playerDetail.item.flashbangFlashRate.avgValue }">
                 <span class="val">{{ (playerDetail.item.flashbangFlashRate.value * 100).toFixed(1) }}%</span>
                 <span class="avg">/ {{ (playerDetail.item.flashbangFlashRate.avgValue * 100).toFixed(1) }}%</span>
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">敌人被闪白时间</span>
+              <span class="label">回均闪白时长</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.item.timeOpponentFlashedPerRound.value > playerDetail.item.timeOpponentFlashedPerRound.avgValue }">
                 <span class="val">{{ playerDetail.item.timeOpponentFlashedPerRound.value.toFixed(2) }}s</span>
                 <span class="avg">/ {{ playerDetail.item.timeOpponentFlashedPerRound.avgValue.toFixed(2) }}s</span>
@@ -466,6 +474,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElProgress } from 'element-plus'
 import { authAPI, commonAPI, type PlayerBase, type PlayerDetailResponse } from '../api'
 import RankBadge from '../components/RankBadge.vue'
+import UserChoose from '../components/UserChoose.vue'
 
 const route = useRoute()
 const router = useRouter()

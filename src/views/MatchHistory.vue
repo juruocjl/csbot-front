@@ -14,6 +14,7 @@
             </option>
           </select>
         </div>
+        <UserChoose targetPath="/history" />
       </div>
       
       <!-- 玩家基本信息 -->
@@ -139,9 +140,9 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authAPI, commonAPI, configAPI, type MatchHistoryResponse, type PlayerBase } from '../api'
-import { ElMessage } from 'element-plus'
 import { watchDebounced } from '@vueuse/core'
 import RankBadge from '../components/RankBadge.vue'
+import UserChoose from '../components/UserChoose.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -279,7 +280,11 @@ const loadHistoryData = async (): Promise<void> => {
     })
     historyData.value = response
   } catch (err: any) {
-    error.value = '加载历史记录失败，请重试'
+    if (err.response?.data?.detail) {
+      error.value = err.response?.data.detail;
+    } else {
+      error.value = '加载历史记录失败，请重试';
+    }
     console.error('获取历史记录失败:', err)
   } finally {
     loading.value = false
@@ -287,11 +292,6 @@ const loadHistoryData = async (): Promise<void> => {
 }
 
 const queryHistory = async (resetPage: boolean = false): Promise<void> => {
-  if (!querySteamId.value.trim()) {
-    ElMessage.error('请输入 Steam ID')
-    return
-  }
-
   if (resetPage) {
     currentPage.value = 1
   }

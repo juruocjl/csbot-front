@@ -1,6 +1,6 @@
 <template>
 	<svg 
-		:class="rankData.class === 'elite' ? 'rank-elite' : rankData.class === 'unknown' ? 'rank-unknown' : 'rank-normal'" 
+		:class="getStarClass" 
 		class="rank-badge-svg" 
 		viewBox="0 0 48 48" 
 		width="48" 
@@ -14,6 +14,14 @@
 			:d="hexPath"
 			class="hex-progress"
 		/>
+		
+		<!-- 恶魔角（50星以上） -->
+		<g v-if="rankData.stars !== null && rankData.stars >= 50" class="demon-horns">
+			<!-- 左角 -->
+			<path d="M 18 8 L 15 2 L 17 10" fill="currentColor" />
+			<!-- 右角 -->
+			<path d="M 30 8 L 33 2 L 31 10" fill="currentColor" />
+		</g>
 		
 		<!-- 文字 -->
 		<text 
@@ -128,6 +136,17 @@ const rankData = computed((): RankInfo => {
 	if (r >= 1001)
 		return { label: 'C', stars: null, class: '', progress: clamp(((r - 1001) / (1150 - 1001)) * 100, 0, 100) }
 	return { label: 'D', stars: null, class: '', progress: clamp((r / 1000) * 100, 0, 100) }
+})
+
+// 根据星级获取颜色等级
+const getStarClass = computed(() => {
+	const stars = rankData.value.stars
+	if (stars === null) return rankData.value.class === 'elite' ? 'rank-elite' : rankData.value.class === 'unknown' ? 'rank-unknown' : 'rank-normal'
+	
+	if (stars >= 50) return 'rank-demon'      // 魔王：红色
+	if (stars >= 25) return 'rank-diamond'    // 钻石：钻石蓝
+	if (stars >= 10) return 'rank-gold'       // 黄金：黄金
+	return 'rank-blue'                         // 蓝色：蓝色
 })
 
 // 圆形周长 = 2πr = 2π*20 ≈ 125.66
@@ -267,5 +286,21 @@ const hexPath = computed(() => {
 
 .rank-unknown {
 	color: #9ca3af;
+}
+
+.rank-blue {
+	color: #60a5fa;
+}
+
+.rank-gold {
+	color: #fbbf24;
+}
+
+.rank-diamond {
+	color: #06b6d4;
+}
+
+.rank-demon {
+	color: #ef4444;
 }
 </style>

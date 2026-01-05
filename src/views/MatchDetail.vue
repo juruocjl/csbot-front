@@ -50,11 +50,11 @@
 				<div class="legacy-display">
 					<div class="legacy-item">
 						<span class="legacy-label">队伍 1 底蕴分</span>
-						<span class="legacy-value">{{ formatInt(matchData.team1LegacyScore) }}</span>
+						<span class="legacy-value">{{ matchData.team1LegacyScore !== null ? formatInt(matchData.team1LegacyScore) : '-' }}</span>
 					</div>
 					<div class="legacy-item">
 						<span class="legacy-label">队伍 2 底蕴分</span>
-						<span class="legacy-value">{{ formatInt(matchData.team2LegacyScore) }}</span>
+						<span class="legacy-value">{{ matchData.team2LegacyScore !== null ? formatInt(matchData.team2LegacyScore) : '-' }}</span>
 					</div>
 				</div>
 			</div>
@@ -80,7 +80,7 @@
 							</router-link>
 						</template>
 					</el-table-column>
-					<el-table-column label="昵称" min-width="90" align="center">
+					<el-table-column label="昵称" min-width="100" align="center">
 						<template #default="{ row }">
 							<router-link :to="`/data?steamId=${row.steamId}`" class="nickname-link">
 								{{ row.nickname }}
@@ -651,6 +651,11 @@ onMounted(() => {
 
 .nickname-link {
 	color: #6366f1;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	display: block;
 }
 
 .nickname-link:hover {

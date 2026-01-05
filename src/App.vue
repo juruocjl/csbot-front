@@ -44,6 +44,10 @@
           <div class="user-info hidden-sm-and-down">
             <span>{{ showName }}</span>
           </div>
+          <UserChoose />
+          <el-button class="share-btn" @click="handleShare" title="分享当前页面">
+            <Share2 :size="18" :stroke-width="2" />
+          </el-button>
           <el-button class="logout-btn" @click="handleLogout">
             <LogOut :size="18" :stroke-width="2" />
           </el-button>
@@ -59,8 +63,10 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History } from 'lucide-vue-next'
+import { ElMessage } from 'element-plus'
+import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Share2 } from 'lucide-vue-next'
 import { authAPI } from './api'
+import UserChoose from './components/UserChoose.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -87,6 +93,20 @@ watch(sidebarCollapsed, (newValue) => {
 const handleLogout = (): void => {
   localStorage.removeItem('token')
   router.push('/login')
+}
+
+const handleShare = (): void => {
+  // 调用API发送当前页面路径
+  ElMessage.info('正在分享当前页面...')
+  authAPI.send(route.fullPath).then(() => {
+    ElMessage.success('分享成功')
+  }).catch(err => {
+    console.error('发送分享请求失败:', err)
+    if (err.response?.data?.detail) {
+      ElMessage.error(`分享失败: ${err.response.data.detail}`)
+      return
+    }
+  })
 }
 
 onMounted(async () => {
@@ -298,13 +318,22 @@ watch(() => route.path, () => {
   font-size: 0.875rem;
 }
 
-:deep(.logout-btn) {
+.share-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+:deep(.logout-btn),
+:deep(.share-btn) {
   color: #374151 !important;
   background: white !important;
   border: 1px solid #e5e7eb !important;
 }
 
-:deep(.logout-btn:hover) {
+:deep(.logout-btn:hover),
+:deep(.share-btn:hover) {
   background: #f9fafb !important;
   border-color: #d1d5db !important;
   color: #111827 !important;

@@ -13,7 +13,8 @@
     "element-plus": "^2.4.4",
     "lucide-vue-next": "^0.562.0",
     "vue": "^3.4.0",
-    "vue-router": "^4.2.5"
+    "vue-router": "^4.2.5",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
