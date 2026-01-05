@@ -44,7 +44,6 @@
           <div class="user-info hidden-sm-and-down">
             <span>{{ showName }}</span>
           </div>
-          <UserChoose />
           <el-button class="share-btn" @click="handleShare" title="分享当前页面">
             <Share2 :size="18" :stroke-width="2" />
           </el-button>
@@ -66,7 +65,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Share2, PiggyBank } from 'lucide-vue-next'
 import { authAPI } from './api'
-import UserChoose from './components/UserChoose.vue'
 
 const route = useRoute()
 const router = useRouter()
