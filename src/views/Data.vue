@@ -23,10 +23,32 @@
       </div>
     </div>
 
+    <!-- 历史天梯卡片 -->
+    <div v-if="playerDetail" class="ladder-history-card">
+      <div class="card-title">历史天梯</div>
+      <div v-if="playerDetail.ladderHistory.length === 0" class="empty-history">
+        暂无历史记录
+      </div>
+      <div v-else class="ladder-history-list">
+        <div v-for="ladder in [...playerDetail.ladderHistory].reverse()" :key="ladder.seasonId" class="ladder-item">
+          <div class="season">{{ ladder.seasonId }}</div>
+          <div class="score-and-stars">
+            <div class="score">{{ ladder.pvpScore }}</div>
+            <RankBadge 
+              :pvpScore="ladder.pvpScore"
+              :pvpStars="ladder.pvpStars"
+              :season="ladder.seasonId"
+              style="transform: scale(0.6); transform-origin: center;"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 详细数据卡片 -->
     <div v-if="playerDetail" class="detail-card">
-      <div class="detail-header">
-        <h2>详细数据</h2>
+      <div class="card-title">
+        详细数据
       </div>
 
       <div class="detail-sections">
@@ -71,6 +93,7 @@
             </div>
           </div>
         </el-card>
+
         <!-- 基础评分 -->
         <el-card class="detail-section">
           <template #header>
@@ -746,6 +769,73 @@ watch(() => route.query.steamId, async (newSteamId) => {
   justify-content: center;
   min-height: 300px;
   color: #9ca3af;
+}
+
+.ladder-history-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+.card-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  color: #111827;
+}
+
+.empty-history {
+  text-align: center;
+  padding: 1rem;
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.ladder-history-list {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.ladder-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.4rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.ladder-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.ladder-item .season {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.7rem;
+  margin-bottom: 0.15rem;
+}
+
+.ladder-item .score-and-stars {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.08rem;
+}
+
+.ladder-item .score {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6366f1;
 }
 
 :deep(.el-card) {

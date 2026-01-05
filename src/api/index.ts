@@ -35,6 +35,7 @@ export type FirstBloodDetail = schemas.FirstBloodDetail
 export type ItemDetail = schemas.ItemDetail
 export type ClutchDetail = schemas.ClutchDetail
 export type SniperDetail = schemas.SniperDetail
+export type LadderItem = schemas.LadderItem
 export type PlayerDetailResponse = schemas.PlayerDetailResponse
 
 // 配置相关

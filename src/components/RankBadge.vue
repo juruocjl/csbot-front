@@ -108,7 +108,7 @@ const rankData = computed((): RankInfo => {
 		// Above 2400 -> S, progress uses pvpstar if available else max
 		const maxStar = 50
 		const progress = clamp((Number.isFinite(s) ? s : 0) / maxStar * 100, 0, 100)
-		return { label: 'S', stars: null, class: 'elite', progress }
+		return { label: 'S', stars: Number.isFinite(s) ? Math.floor(s) : 0, class: 'elite', progress }
 	}
 
 	// Modern tiers (> S20): keep star variants
@@ -146,7 +146,7 @@ const getStarClass = computed(() => {
 	if (stars >= 50) return 'rank-demon'      // 魔王：红色
 	if (stars >= 25) return 'rank-diamond'    // 钻石：钻石蓝
 	if (stars >= 10) return 'rank-gold'       // 黄金：黄金
-	return 'rank-blue'                         // 蓝色：蓝色
+	if (stars >= 0) return 'rank-bronze'      // 铜色：铜色
 })
 
 // 圆形周长 = 2πr = 2π*20 ≈ 125.66
@@ -290,6 +290,10 @@ const hexPath = computed(() => {
 
 .rank-blue {
 	color: #60a5fa;
+}
+
+.rank-bronze {
+	color: #cd7f32;
 }
 
 .rank-gold {

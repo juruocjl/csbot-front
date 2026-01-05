@@ -170,6 +170,13 @@ export const SniperDetailSchema = z.object({
   sniperMultipleKillRoundPercentage: PlayerDetailItemSchema
 })
 
+// 天梯历史记录
+export const LadderItemSchema = z.object({
+  seasonId: z.string(),
+  pvpScore: z.number(),
+  pvpStars: z.number()
+})
+
 export const PlayerDetailResponseSchema = z.object({
   pvpScore: z.number(),
   pvpStars: z.number(),
@@ -177,6 +184,7 @@ export const PlayerDetailResponseSchema = z.object({
   winRate: PlayerDetailItemSchema,
   seasonId: z.string(),
   lastUpdate: z.number(),
+  ladderHistory: z.array(LadderItemSchema),
   baseRating: BaseRatingDetailSchema,
   firePower: FirePowerDetailSchema,
   marksmanship: MarksmanshipDetailSchema,
@@ -262,6 +270,7 @@ export type FirstBloodDetail = z.infer<typeof FirstBloodDetailSchema>
 export type ItemDetail = z.infer<typeof ItemDetailSchema>
 export type ClutchDetail = z.infer<typeof ClutchDetailSchema>
 export type SniperDetail = z.infer<typeof SniperDetailSchema>
+export type LadderItem = z.infer<typeof LadderItemSchema>
 export type PlayerDetailResponse = z.infer<typeof PlayerDetailResponseSchema>
 export type TimeResponse = z.infer<typeof TimeResponseSchema>
 export type RankConfigItem = z.infer<typeof RankConfigItemSchema>
