@@ -114,6 +114,17 @@ onMounted(async () => {
   } catch (err) {
     console.error('获取用户名失败:', err)
   }
+
+  // 监听从登录页跳转的情况
+  router.afterEach((_to, from) => {
+    if (from.path === '/login') {
+      authAPI.getInfoName().then(result => {
+        showName.value = result.showName
+      }).catch(err => {
+        console.error('获取用户名失败:', err)
+      })
+    }
+  })
 })
 
 // 路由变化时关闭移动菜单
