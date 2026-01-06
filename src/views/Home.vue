@@ -18,7 +18,11 @@
     </div>
 
     <div class="status-card" v-if="status">
-      <h3>系统状态</h3>
+      <h3>系统状态
+        <el-button @click="refreshStatus" title="刷新状态">
+          <RefreshCw :size="16"/>
+        </el-button>
+      </h3>
       <div class="status-grid">
         <div class="status-item">
           <span class="label">CPU 使用率</span>
@@ -53,6 +57,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { authAPI, systemAPI, type StatusResponse } from '../api'
+import { RefreshCw } from 'lucide-vue-next'
+import { ElButton } from 'element-plus'
 
 const userName = ref<string>('用户')
 const steamId = ref<string>('')
@@ -108,6 +114,15 @@ onMounted(async () => {
     console.error('获取系统状态失败:', err)
   }
 })
+
+const refreshStatus = async (): Promise<void> => {
+  try {
+    const statusResult = await systemAPI.getStatus()
+    status.value = statusResult
+  } catch (err) {
+    console.error('刷新系统状态失败:', err)
+  }
+}
 </script>
 
 <style scoped>
