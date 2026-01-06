@@ -74,6 +74,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import Cookies from 'js-cookie'
 import { authAPI } from '../api'
 
 interface AuthData {
@@ -99,8 +100,8 @@ const initAuth = async (): Promise<void> => {
     const data = await authAPI.init()
     authData.value = data
     
-    // 保存 token 到 localStorage
-    localStorage.setItem('token', data.token)
+    // 保存 token 到 cookie，30 天有效期
+    Cookies.set('token', data.token, { expires: 30 })
   } catch (error) {
     ElMessage.error('获取验证码失败，请重试')
     console.error('初始化认证失败:', error)
@@ -132,20 +133,20 @@ const useManualToken = async (): Promise<void> => {
     return
   }
 
-  const prevToken = localStorage.getItem('token')
+  const prevToken = Cookies.get('token')
   manualChecking.value = true
 
   try {
-    localStorage.setItem('token', token)
+    Cookies.set('token', token, { expires: 30 })
     await authAPI.verify()
     const redirect = route.query.redirect as string || '/'
     router.push(redirect)
   } catch (error) {
     ElMessage.error('Token 验证失败，请确认正确后重试')
     if (prevToken) {
-      localStorage.setItem('token', prevToken)
+      Cookies.set('token', prevToken, { expires: 30 })
     } else {
-      localStorage.removeItem('token')
+      Cookies.remove('token')
     }
     console.error('手动 token 验证失败:', error)
   } finally {

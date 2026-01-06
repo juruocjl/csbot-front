@@ -15,7 +15,7 @@
           <p class="last-update">比赛数据更新于: {{ formatTimestamp(playerInfo.lastUpdate) }}</p>
           <div style="display: flex; gap: 0.5rem;">
             <router-link :to="`/history?steamId=${querySteamId}`" >
-              <el-button type="primary" :size="80">查看比赛记录</el-button>
+              <el-button type="primary">查看比赛记录</el-button>
             </router-link>
             <UserChoose targetPath="/data" />
           </div>

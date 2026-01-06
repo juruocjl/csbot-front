@@ -29,8 +29,6 @@
             </router-link>
             <p class="last-update">
               <el-button 
-                type="text" 
-                size="mini" 
                 @click="updateMatchHistory"
               ><RefreshCw :size="16"/></el-button>
               更新于：{{ formatTimestamp(playerInfo.lastUpdate) }}
@@ -49,8 +47,6 @@
             </router-link>
             <p class="last-update">
               <el-button 
-                type="text" 
-                size="mini" 
                 @click="updateMatchHistory"
               ><RefreshCw :size="16"/></el-button>
               更新于：None

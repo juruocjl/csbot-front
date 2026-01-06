@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios'
+import Cookies from 'js-cookie'
 
 // 创建 axios 实例
 const apiClient: AxiosInstance = axios.create({
@@ -13,9 +14,11 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // 可以在这里添加 token 等认证信息
-    const token = localStorage.getItem('token')
+    const token = Cookies.get('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+      // 每次请求时刷新 token 的有效期
+      Cookies.set('token', token, { expires: 30 })
     }
     return config
   },

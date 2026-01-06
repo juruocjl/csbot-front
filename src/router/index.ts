@@ -6,6 +6,7 @@ import MatchDetail from '../views/MatchDetail.vue'
 import MatchHistory from '../views/MatchHistory.vue'
 import Rank from '../views/Rank.vue'
 import { ElMessage } from 'element-plus'
+import Cookies from 'js-cookie'
 import { authAPI } from '../api'
 
 declare module 'vue-router' {
@@ -60,7 +61,7 @@ const router = createRouter({
 
 // 路由守卫
 router.beforeEach(async (to, _from, next: NavigationGuardNext) => {
-  const token = localStorage.getItem('token')
+  const token = Cookies.get('token')
   const requiresAuth = to.meta.requiresAuth !== false
 
   // 如果页面不需要认证，直接放行
@@ -85,7 +86,7 @@ router.beforeEach(async (to, _from, next: NavigationGuardNext) => {
   } catch (error: any) {
     if(error.response?.status === 401) {
       // token 无效，清除并跳转到登录页
-      localStorage.removeItem('token')
+      Cookies.remove('token')
       next({
         path: '/login',
         query: { redirect: to.fullPath }
