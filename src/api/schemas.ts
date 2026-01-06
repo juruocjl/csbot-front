@@ -84,6 +84,12 @@ export const MatchHistoryResponseSchema = z.object({
 })
 
 // 玩家相关 Schemas
+export const PlayerUpdateSchema = z.object({
+  nickname: z.string(),
+  matchCount: z.number(),
+  matchgpCount: z.number(),
+})
+
 export const PlayerBaseSchema = z.object({
   nickname: z.string(),
   lastUpdate: z.number()
@@ -261,6 +267,7 @@ export type MatchData = z.infer<typeof MatchDataSchema>
 export type HistoryMatch = z.infer<typeof HistoryMatchSchema>
 export type MatchHistoryResponse = z.infer<typeof MatchHistoryResponseSchema>
 export type PlayerBase = z.infer<typeof PlayerBaseSchema>
+export type PlayerUpdate = z.infer<typeof PlayerUpdateSchema>
 export type PlayerDetailItem = z.infer<typeof PlayerDetailItemSchema>
 export type BaseRatingDetail = z.infer<typeof BaseRatingDetailSchema>
 export type FirePowerDetail = z.infer<typeof FirePowerDetailSchema>

@@ -27,7 +27,34 @@
             <router-link :to="`/data?steamId=${querySteamId}`" class="nickname-link">
               <h3>{{ playerInfo.nickname }}</h3>
             </router-link>
-            <p class="last-update">更新于：{{ formatTimestamp(playerInfo.lastUpdate) }}</p>
+            <p class="last-update">
+              <el-button 
+                type="text" 
+                size="mini" 
+                @click="updateMatchHistory"
+              ><RefreshCw :size="16"/></el-button>
+              更新于：{{ formatTimestamp(playerInfo.lastUpdate) }}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div v-else class="player-info">
+        <div class="player-card">
+          <router-link :to="`/data?steamId=${querySteamId}`" class="avatar-link">
+            <el-avatar :src="`/imgs/avatar/${querySteamId}.png`" alt="未知玩家" :size="64" @error="handleImageError"></el-avatar>
+          </router-link>
+          <div class="player-details">
+            <router-link :to="`/data?steamId=${querySteamId}`" class="nickname-link">
+              <h3>未知玩家</h3>
+            </router-link>
+            <p class="last-update">
+              <el-button 
+                type="text" 
+                size="mini" 
+                @click="updateMatchHistory"
+              ><RefreshCw :size="16"/></el-button>
+              更新于：None
+            </p>
           </div>
         </div>
       </div>
@@ -139,10 +166,12 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { authAPI, commonAPI, configAPI, type MatchHistoryResponse, type PlayerBase } from '../api'
+import { authAPI, commonAPI, configAPI, type MatchHistoryResponse, type PlayerBase} from '../api'
 import { watchDebounced } from '@vueuse/core'
+import { RefreshCw } from 'lucide-vue-next'
 import RankBadge from '../components/RankBadge.vue'
 import UserChoose from '../components/UserChoose.vue'
+import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
@@ -170,22 +199,11 @@ onMounted(async () => {
   }
   
   if (querySteamId.value) {
-    try {
-      playerInfo.value = await commonAPI.getPlayerBase(querySteamId.value)
-    } catch (err) {
-      console.error('获取玩家信息失败:', err)
-      playerInfo.value = null
-    }
+    await loadPlayerInfo()
   }
 
   if (queryTimeType.value && querySteamId.value) {
     // 如果 URL 中已有参数，直接加载数据
-    try {
-      playerInfo.value = await commonAPI.getPlayerBase(querySteamId.value)
-    } catch (err) {
-      console.error('获取玩家信息失败:', err)
-      playerInfo.value = null
-    }
     await loadHistoryData()
     return
   }
@@ -207,6 +225,30 @@ onMounted(async () => {
     }
   }
 })
+
+const loadPlayerInfo = async (): Promise<void> => {
+  try {
+    playerInfo.value = await commonAPI.getPlayerBase(querySteamId.value)
+  } catch (err) {
+    console.error('获取玩家信息失败:', err)
+    playerInfo.value = null
+  }
+}
+
+const updateMatchHistory = async (): Promise<void> => {
+  ElMessage.info('正在请求更新比赛历史，请稍候...')
+  try {
+    const result = await commonAPI.updatePlayerData(querySteamId.value)
+    console.log('请求更新比赛历史成功:', result)
+    ElMessage.success(`${result.nickname} 更新 ${result.matchCount} 场完美比赛，${result.matchgpCount} 场官匹比赛`)
+    // 只在成功时调用
+    await loadPlayerInfo()
+    await loadHistoryData()
+  } catch (err: any) {
+    console.error('请求更新比赛历史失败:', err)
+    ElMessage.error(err.response?.data?.detail || '更新失败，请稍后重试')
+  }
+}
 
 const formatTimestamp = (timestamp: number): string => {
   const date = new Date(timestamp * 1000)
@@ -320,16 +362,7 @@ const onPageChange = async (page: number): Promise<void> => {
 }
 
 // 监听 Steam ID 改变，获取玩家信息
-watchDebounced(querySteamId, async (newSteamId) => {
-  if (newSteamId.trim()) {
-    try {
-      playerInfo.value = await commonAPI.getPlayerBase(newSteamId)
-    } catch (err) {
-      console.error('获取玩家信息失败:', err)
-      playerInfo.value = null
-    }
-  }
-}, { debounce: 100 })
+watchDebounced(querySteamId, loadPlayerInfo, { debounce: 100 })
 
 // 监听 Steam ID 和 时间类型的变化自动查询
 watchDebounced([querySteamId, queryTimeType], () => {

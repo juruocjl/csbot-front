@@ -5,6 +5,7 @@ import Login from '../views/Login.vue'
 import MatchDetail from '../views/MatchDetail.vue'
 import MatchHistory from '../views/MatchHistory.vue'
 import Rank from '../views/Rank.vue'
+import { ElMessage } from 'element-plus'
 import { authAPI } from '../api'
 
 declare module 'vue-router' {
@@ -81,13 +82,19 @@ router.beforeEach(async (to, _from, next: NavigationGuardNext) => {
   try {
     await authAPI.verify()
     next()
-  } catch (error) {
-    // token 无效，清除并跳转到登录页
-    localStorage.removeItem('token')
-    next({
-      path: '/login',
-      query: { redirect: to.fullPath }
-    })
+  } catch (error: any) {
+    if(error.response?.status === 401) {
+      // token 无效，清除并跳转到登录页
+      localStorage.removeItem('token')
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+    } else {
+      console.error('验证 Token 时发生错误:', error)
+      ElMessage.error('验证身份时发生错误，请稍后重试')
+      return
+    }
   }
 })
 

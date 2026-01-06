@@ -25,6 +25,7 @@ export interface HistoryQueryParams {
 }
 
 // 玩家相关
+export type PlayerUpdate = schemas.PlayerUpdate
 export type PlayerBase = schemas.PlayerBase
 export type PlayerDetailItem = schemas.PlayerDetailItem
 export type BaseRatingDetail = schemas.BaseRatingDetail
@@ -91,7 +92,7 @@ export const authAPI = {
     return schemas.AuthDataSchema.parse(response)
   },
 
-  // 发送登录验证码
+  // 发送当前页面到群聊
   send: async (path: string): Promise<SendAuthResponse> => {
     const response = await apiClient.post('/api/auth/send', { path })
     return schemas.SendAuthResponseSchema.parse(response)
@@ -110,6 +111,12 @@ export const commonAPI = {
   getMatchHistory: async (params: { steamId: string; timeType: string; page: number }): Promise<MatchHistoryResponse> => {
     const response = await apiClient.post('/api/match/history', params)
     return schemas.MatchHistoryResponseSchema.parse(response)
+  },
+
+  // 更新玩家数据
+  updatePlayerData: async (steamId: string): Promise<PlayerUpdate> => {
+    const response = await apiClient.post('/api/player/update', { steamId: steamId })
+    return schemas.PlayerUpdateSchema.parse(response)
   },
 
   // 获取玩家基础信息

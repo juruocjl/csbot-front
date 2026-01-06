@@ -202,12 +202,6 @@ const formatTimestamp = (timestamp: number): string => {
 	return date.toLocaleString('zh-CN')
 }
 
-const calculateKD = (kills: number | string, deaths: number | string): string => {
-	const d = Number(deaths)
-	if (d === 0) return Number(kills).toFixed(2)
-	return (Number(kills) / d).toFixed(2)
-}
-
 const calculateKDDiff = (kills: number | string, deaths: number | string): string | number => {
 	const diff = Number(kills) - Number(deaths)
 	return Number.isNaN(diff) ? '-' : diff
@@ -268,10 +262,6 @@ const objectSpanMethod = ({ rowIndex, columnIndex }: { rowIndex: number; columnI
 		// 其他行的第一列隐藏（被上面的行合并了）
 		return [0, 0]
 	}
-}
-
-const getColumnClassName = (): string => {
-	return 'team-indicator-column'
 }
 
 const getRowClassName = ({ row, rowIndex }: { row: any; rowIndex: number }): string => {
