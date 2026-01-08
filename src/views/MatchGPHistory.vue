@@ -1,5 +1,5 @@
 <template>
-  <div class="history-container">
+  <div class="gp-history-container">
     <div class="query-section">
       <div class="query-form">
         <div class="form-group">
@@ -14,8 +14,8 @@
             </option>
           </select>
         </div>
-        <UserChoose targetPath="/history" />
-        <el-button type="primary" @click="switchToGPHistory" class="switch-btn">切换至官匹历史</el-button>
+        <UserChoose targetPath="/gp-history" />
+        <el-button type="primary" @click="switchToHistory" class="switch-btn">切换至完美历史</el-button>
       </div>
       
       <!-- 玩家基本信息 -->
@@ -78,12 +78,12 @@
           <el-table-column label="比赛 ID" align="center">
             <template #default="{ row }">
               <div>
-                <router-link :to="`/match?id=${row.matchId}`" class="match-link" :title="row.matchId">
+                <router-link :to="`/match-gp?id=${row.matchId}`" class="match-link" :title="row.matchId">
                   {{ formatMatchId(row.matchId) }}
                 </router-link>
               </div>
               <div style="font-size: 12px; color: #999; margin-top: 4px;">
-                {{ row.season }} / {{ formatMonthDay(row.timeStamp) }}
+                {{ formatMonthDay(row.timeStamp) }}
               </div>
             </template>
           </el-table-column>
@@ -113,34 +113,20 @@
               <span :class="valueClass(row.rating)">{{ formatRating(row.rating) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="WE" align="center">
+          <el-table-column label="ADR" align="center">
             <template #default="{ row }">
-              <span :class="valueClass(row.we, 8)">{{ formatWe(row.we) }}</span>
+              <span :class="valueClass(row.adr, 75)">{{ formatADR(row.adr) }}</span>
             </template>
           </el-table-column>
-
+          <el-table-column label="官匹等级" align="center">
+            <template #default="{ row }">
+              <span>{{ formatRank(row.rank) }}</span>
+            </template>
+          </el-table-column>
           <el-table-column label="底蕴分差" align="center">
             <template #default="{ row }">
               <span :class="{ 'value-positive': row.legacyDiff > 0, 'value-negative': row.legacyDiff < 0 }">
                 {{ formatNumber(row.legacyDiff) }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column label="段位" align="center">
-            <template #default="{ row }">
-              <div style="transform: scale(0.75); transform-origin: center; display: inline-block;">
-                <RankBadge 
-                  :pvp-score="row.pvpScore" 
-                  :pvp-stars="row.pvpStars" 
-                  :season="row.season" 
-                />
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="分数变化" align="center">
-            <template #default="{ row }">
-              <span :class="{ 'value-positive': row.pvpScoreChange > 0, 'value-negative': row.pvpScoreChange < 0 }">
-                {{ row.pvpScoreChange > 0 ? '+' : '' }}{{ row.pvpScoreChange }}
               </span>
             </template>
           </el-table-column>
@@ -163,20 +149,18 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { authAPI, commonAPI, configAPI, type MatchHistoryResponse, type PlayerBase} from '../api'
+import { authAPI, commonAPI, configAPI, type MatchGPHistoryResponse, type PlayerBase} from '../api'
 import { watchDebounced } from '@vueuse/core'
 import { RefreshCw } from 'lucide-vue-next'
-import RankBadge from '../components/RankBadge.vue'
 import UserChoose from '../components/UserChoose.vue'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
 
-
 const loading = ref<boolean>(false)
 const error = ref<string | null>(null)
-const historyData = ref<MatchHistoryResponse | null>(null)
+const historyData = ref<MatchGPHistoryResponse | null>(null)
 const playerInfo = ref<PlayerBase | null>(null)
 const timeTypes = ref<string[]>([])
 
@@ -189,7 +173,7 @@ onMounted(async () => {
   // 获取时间类型列表
   try {
     const timeTypeResponse = await configAPI.getTimeTypes()
-    timeTypes.value = timeTypeResponse.timeTypes
+    timeTypes.value = timeTypeResponse.gpTimeTypes
   } catch (err) {
     console.error('获取时间类型失败:', err)
     timeTypes.value = []
@@ -199,16 +183,20 @@ onMounted(async () => {
     await loadPlayerInfo()
   }
 
-  if (queryTimeType.value && querySteamId.value) {
+  
+
+  if (queryTimeType.value && timeTypes.value.includes(queryTimeType.value) && querySteamId.value) {
     // 如果 URL 中已有参数，直接加载数据
     await loadHistoryData()
     return
   }
-  
-  // 如果 URL 中没有参数，设置默认值
-  if (!queryTimeType.value && timeTypes.value.length > 0) {
-    queryTimeType.value = timeTypes.value[timeTypes.value.length - 1]
+  if ((!queryTimeType.value || !timeTypes.value.includes(queryTimeType.value)) && timeTypes.value.length > 0) {
+      if (!timeTypes.value.includes(queryTimeType.value)) {
+        ElMessage.warning('URL 中的时间类型无效，已重置为默认值')
+      }
+      queryTimeType.value = timeTypes.value[timeTypes.value.length - 1]
   }
+  
   
   if (!querySteamId.value) {
     try {
@@ -258,9 +246,9 @@ const handleImageError = (e: Event): void => {
     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect fill="%23e5e7eb" width="64" height="64"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="22"%3E?%3C/text%3E%3C/svg%3E'
 }
 
-const switchToGPHistory = (): void => {
+const switchToHistory = (): void => {
   router.push({
-    path: '/gp-history',
+    path: '/history',
     query: {
       steamId: querySteamId.value.trim(),
       timeType: queryTimeType.value,
@@ -299,10 +287,16 @@ const formatRating = (value: number): string => {
   return num.toFixed(2)
 }
 
-const formatWe = (value: number): string => {
+const formatADR = (value: number): string => {
   const num = Number(value)
   if (!Number.isFinite(num)) return '-'
   return num.toFixed(1)
+}
+
+const formatRank = (value: number): string => {
+  const num = Number(value)
+  if (!Number.isFinite(num)) return '-'
+  return num.toString()
 }
 
 const valueClass = (value: number | string, threshold: number = 1): string => {
@@ -323,7 +317,7 @@ const loadHistoryData = async (): Promise<void> => {
   loading.value = true
   error.value = null
   try {
-    const response = await commonAPI.getMatchHistory({
+    const response = await commonAPI.getMatchGPHistory({
       steamId: querySteamId.value.trim(),
       timeType: queryTimeType.value,
       page: currentPage.value
@@ -348,7 +342,7 @@ const queryHistory = async (resetPage: boolean = false): Promise<void> => {
 
   // 只更新URL参数，由 route.query 监听触发实际查询
   await router.replace({
-    path: '/history',
+    path: '/gp-history',
     query: {
       steamId: querySteamId.value.trim(),
       timeType: queryTimeType.value,
@@ -360,7 +354,7 @@ const queryHistory = async (resetPage: boolean = false): Promise<void> => {
 const onPageChange = async (page: number): Promise<void> => {
   // 更新URL参数，由 route.query 监听触发查询
   await router.replace({
-    path: '/history',
+    path: '/gp-history',
     query: {
       steamId: querySteamId.value.trim(),
       timeType: queryTimeType.value,
@@ -390,7 +384,7 @@ watch(() => route.query, async (newQuery) => {
 }, { deep: true })</script>
 
 <style scoped>
-.history-container {
+.gp-history-container {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -563,9 +557,6 @@ watch(() => route.query, async (newQuery) => {
 
 .lose-score {
   color: #dc2626;
-  font-weight: 600;
-}.win-score {
-  color: #059669;
   font-weight: 600;
 }
 

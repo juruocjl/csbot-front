@@ -83,6 +83,55 @@ export const MatchHistoryResponseSchema = z.object({
   matches: z.array(HistoryMatchSchema)
 })
 
+// 官匹历史记录相关 Schemas
+export const HistoryGPMatchSchema = z.object({
+  matchId: z.string(),
+  timeStamp: z.number(),
+  mode: z.string(),
+  mapName: z.string(),
+  team1Score: z.number(),
+  team2Score: z.number(),
+  team: z.number(),
+  winTeam: z.number(),
+  rating: z.number(),
+  adr: z.number(),
+  rank: z.number(),
+  legacyDiff: z.number().nullable()
+})
+
+export const MatchGPHistoryResponseSchema = z.object({
+  totCount: z.number(),
+  pageSize: z.number(),
+  matches: z.array(HistoryGPMatchSchema)
+})
+
+// 官匹比赛详情相关 Schemas
+export const MatchGPPlayerInfoSchema = z.object({
+  steamId: z.string(),
+  nickname: z.string(),
+  team: z.number(),
+  rating: z.number(),
+  adr: z.number(),
+  kills: z.number(),
+  deaths: z.number(),
+  assists: z.number(),
+  legacyScore: z.union([z.number(), z.null()]),
+  rank: z.number()
+})
+
+export const MatchGPInfoSchema = z.object({
+  matchId: z.string(),
+  timestamp: z.number(),
+  winTeam: z.number(),
+  mode: z.string(),
+  mapName: z.string(),
+  team1Score: z.number(),
+  team2Score: z.number(),
+  team1LegacyScore: z.union([z.number(), z.null()]),
+  team2LegacyScore: z.union([z.number(), z.null()]),
+  players: z.array(MatchGPPlayerInfoSchema)
+})
+
 // 玩家相关 Schemas
 export const PlayerUpdateSchema = z.object({
   nickname: z.string(),
@@ -203,7 +252,8 @@ export const PlayerDetailResponseSchema = z.object({
 
 // 配置相关 Schemas
 export const TimeResponseSchema = z.object({
-  timeTypes: z.array(z.string())
+  timeTypes: z.array(z.string()),
+  gpTimeTypes: z.array(z.string())
 })
 
 export const RankConfigItemSchema = z.object({
@@ -264,8 +314,12 @@ export type UserInfo = z.infer<typeof UserInfoSchema>
 export type SendAuthResponse = z.infer<typeof SendAuthResponseSchema>
 export type Player = z.infer<typeof PlayerSchema>
 export type MatchData = z.infer<typeof MatchDataSchema>
+export type MatchGPPlayerInfo = z.infer<typeof MatchGPPlayerInfoSchema>
+export type MatchGPInfo = z.infer<typeof MatchGPInfoSchema>
 export type HistoryMatch = z.infer<typeof HistoryMatchSchema>
 export type MatchHistoryResponse = z.infer<typeof MatchHistoryResponseSchema>
+export type HistoryGPMatch = z.infer<typeof HistoryGPMatchSchema>
+export type MatchGPHistoryResponse = z.infer<typeof MatchGPHistoryResponseSchema>
 export type PlayerBase = z.infer<typeof PlayerBaseSchema>
 export type PlayerUpdate = z.infer<typeof PlayerUpdateSchema>
 export type PlayerDetailItem = z.infer<typeof PlayerDetailItemSchema>

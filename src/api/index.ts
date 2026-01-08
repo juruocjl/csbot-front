@@ -13,10 +13,14 @@ export type SendAuthResponse = schemas.SendAuthResponse
 // 比赛相关
 export type Player = schemas.Player
 export type MatchData = schemas.MatchData
+export type MatchGPPlayerInfo = schemas.MatchGPPlayerInfo
+export type MatchGPInfo = schemas.MatchGPInfo
 
 // 历史记录相关
 export type HistoryMatch = schemas.HistoryMatch
 export type MatchHistoryResponse = schemas.MatchHistoryResponse
+export type HistoryGPMatch = schemas.HistoryGPMatch
+export type MatchGPHistoryResponse = schemas.MatchGPHistoryResponse
 
 export interface HistoryQueryParams {
   steamId: string
@@ -107,10 +111,22 @@ export const commonAPI = {
     return schemas.MatchDataSchema.parse(response)
   },
 
+  // 获取官匹比赛详情
+  getMatchGPInfo: async (matchId: string): Promise<MatchGPInfo> => {
+    const response = await apiClient.post('/api/match/infogp', { matchId: matchId })
+    return schemas.MatchGPInfoSchema.parse(response)
+  },
+
   // 获取比赛历史记录
   getMatchHistory: async (params: { steamId: string; timeType: string; page: number }): Promise<MatchHistoryResponse> => {
     const response = await apiClient.post('/api/match/history', params)
     return schemas.MatchHistoryResponseSchema.parse(response)
+  },
+
+  // 获取官匹比赛历史记录
+  getMatchGPHistory: async (params: { steamId: string; timeType: string; page: number }): Promise<MatchGPHistoryResponse> => {
+    const response = await apiClient.post('/api/match/historygp', params)
+    return schemas.MatchGPHistoryResponseSchema.parse(response)
   },
 
   // 更新玩家数据

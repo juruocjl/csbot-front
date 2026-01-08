@@ -3,7 +3,9 @@ import Home from '../views/Home.vue'
 import Data from '../views/Data.vue'
 import Login from '../views/Login.vue'
 import MatchDetail from '../views/MatchDetail.vue'
+import MatchGPDetail from '../views/MatchGPDetail.vue'
 import MatchHistory from '../views/MatchHistory.vue'
+import MatchGPHistory from '../views/MatchGPHistory.vue'
 import Rank from '../views/Rank.vue'
 import { ElMessage } from 'element-plus'
 import Cookies from 'js-cookie'
@@ -41,9 +43,21 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/match-gp',
+    name: 'MatchGPDetail',
+    component: MatchGPDetail,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/history',
     name: 'MatchHistory',
     component: MatchHistory,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/gp-history',
+    name: 'MatchGPHistory',
+    component: MatchGPHistory,
     meta: { requiresAuth: true }
   },
   {
