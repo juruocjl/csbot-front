@@ -1,5 +1,5 @@
 <template>
-  <div class="gp-history-container">
+  <div class="history-gp-container">
     <div class="query-section">
       <div class="query-form">
         <div class="form-group">
@@ -14,7 +14,7 @@
             </option>
           </select>
         </div>
-        <UserChoose targetPath="/gp-history" />
+        <UserChoose targetPath="/history-gp" />
         <el-button type="primary" @click="switchToHistory" class="switch-btn">切换至完美历史</el-button>
       </div>
       
@@ -120,7 +120,7 @@
           </el-table-column>
           <el-table-column label="官匹等级" align="center">
             <template #default="{ row }">
-              <span>{{ formatRank(row.rank) }}</span>
+              <RankBadgeGP :rank="row.rank" :mode="row.mode"/>
             </template>
           </el-table-column>
           <el-table-column label="底蕴分差" align="center">
@@ -153,6 +153,7 @@ import { authAPI, commonAPI, configAPI, type MatchGPHistoryResponse, type Player
 import { watchDebounced } from '@vueuse/core'
 import { RefreshCw } from 'lucide-vue-next'
 import UserChoose from '../components/UserChoose.vue'
+import RankBadgeGP from '../components/RankBadgeGP.vue'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
@@ -293,12 +294,6 @@ const formatADR = (value: number): string => {
   return num.toFixed(1)
 }
 
-const formatRank = (value: number): string => {
-  const num = Number(value)
-  if (!Number.isFinite(num)) return '-'
-  return num.toString()
-}
-
 const valueClass = (value: number | string, threshold: number = 1): string => {
   const num = Number(value)
   if (Number.isNaN(num)) return ''
@@ -342,7 +337,7 @@ const queryHistory = async (resetPage: boolean = false): Promise<void> => {
 
   // 只更新URL参数，由 route.query 监听触发实际查询
   await router.replace({
-    path: '/gp-history',
+    path: '/history-gp',
     query: {
       steamId: querySteamId.value.trim(),
       timeType: queryTimeType.value,
@@ -354,7 +349,7 @@ const queryHistory = async (resetPage: boolean = false): Promise<void> => {
 const onPageChange = async (page: number): Promise<void> => {
   // 更新URL参数，由 route.query 监听触发查询
   await router.replace({
-    path: '/gp-history',
+    path: '/history-gp',
     query: {
       steamId: querySteamId.value.trim(),
       timeType: queryTimeType.value,
@@ -384,7 +379,7 @@ watch(() => route.query, async (newQuery) => {
 }, { deep: true })</script>
 
 <style scoped>
-.gp-history-container {
+.history-gp-container {
   width: 100%;
   display: flex;
   flex-direction: column;

@@ -55,7 +55,7 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/gp-history',
+    path: '/history-gp',
     name: 'MatchGPHistory',
     component: MatchGPHistory,
     meta: { requiresAuth: true }

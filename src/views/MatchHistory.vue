@@ -260,7 +260,7 @@ const handleImageError = (e: Event): void => {
 
 const switchToGPHistory = (): void => {
   router.push({
-    path: '/gp-history',
+    path: '/history-gp',
     query: {
       steamId: querySteamId.value.trim(),
       timeType: queryTimeType.value,

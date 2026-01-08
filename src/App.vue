@@ -77,10 +77,10 @@ const pageTitle = computed<string>(() => {
     '/': '主页',
     '/data': '数据',
     '/history': '历史',
-    '/gp-history': '官匹历史',
+    '/history-gp': '官匹历史',
     '/rank': '排名',
     '/match': '比赛详情',
-    '/gpmatch': '官匹比赛详情',
+    '/match-gp': '官匹比赛详情',
   }
   return titles[route.path] || 'Dashboard'
 })

@@ -116,7 +116,7 @@
 						</el-table-column>
 						<el-table-column label="段位" align="center">
 							<template #default="{ row }">
-								<span>{{ formatRank(row.rank) }}</span>
+								<RankBadgeGP :rank="row.rank" :mode="matchData.mode"/>
 							</template>
 						</el-table-column>
 					</el-table>
@@ -129,8 +129,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ChevronLeft } from 'lucide-vue-next'
 import { commonAPI, type MatchGPPlayerInfo, type MatchGPInfo} from '../api'
+import RankBadgeGP from '../components/RankBadgeGP.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -217,12 +217,6 @@ const formatADR = (value: number | string): string => {
 	const num = Number(value)
 	if (!Number.isFinite(num)) return '-'
 	return num.toFixed(1)
-}
-
-const formatRank = (value: number | string): string => {
-	const num = Number(value)
-	if (!Number.isFinite(num)) return '-'
-	return num.toString()
 }
 
 const valueClass = (value: number | string, threshold: number = 1): string => {
