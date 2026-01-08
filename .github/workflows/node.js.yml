@@ -6,8 +6,9 @@ name: Node.js CI
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -31,11 +32,9 @@ jobs:
       run: npm ci
     - name: Build Project
       run: npm run build
-    - name: Zip Build
-      run: cd dist && zip -r ../dist.zip .
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+    - name: Push to Release Branch
+      uses: JamesIves/github-pages-deploy-action@v4
       with:
-        name: deployment-package
-        path: dist.zip
-        retention-days: 1
+        folder: dist           # 要推送的文件夹 (Vue 构建输出目录)
+        branch: build-output   # 目标分支名称 (你可以随便取，例如 release 或 dist)
+        clean: true
