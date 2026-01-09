@@ -77,19 +77,19 @@
         <el-table :data="historyData?.matches || []" style="width: 100%">
           <el-table-column label="比赛 ID" align="center">
             <template #default="{ row }">
-              <div>
-                <router-link :to="`/match?id=${row.matchId}`" class="match-link" :title="row.matchId">
-                  {{ formatMatchId(row.matchId) }}
-                </router-link>
-              </div>
-              <div style="font-size: 12px; color: #999; margin-top: 4px;">
+              <router-link :to="`/match?id=${row.matchId}`" class="match-link" :title="row.matchId">
+                {{ formatMatchId(row.matchId) }}
+              </router-link>
+              <p class="match-subtext">
                 {{ row.season }} / {{ formatMonthDay(row.timeStamp) }}
-              </div>
+              </p>
             </template>
           </el-table-column>
           <el-table-column label="模式" align="center">
             <template #default="{ row }">
-              {{ row.mode }}
+              <div>
+                {{ row.mode }}
+              </div>
             </template>
           </el-table-column>
           <el-table-column label="地图" align="center">
@@ -554,6 +554,21 @@ watch(() => route.query, async (newQuery) => {
 .match-link:hover {
   color: #4f46e5;
   text-decoration: underline;
+}
+
+.match-subtext {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0.25rem 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.match-type-tag {
+  flex-shrink: 0;
 }
 
 .win-score {

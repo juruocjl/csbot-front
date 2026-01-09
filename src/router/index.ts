@@ -6,6 +6,7 @@ import MatchDetail from '../views/MatchDetail.vue'
 import MatchGPDetail from '../views/MatchGPDetail.vue'
 import MatchHistory from '../views/MatchHistory.vue'
 import MatchGPHistory from '../views/MatchGPHistory.vue'
+import MatchAllHistory from '../views/MatchAllHistory.vue'
 import Rank from '../views/Rank.vue'
 import { ElMessage } from 'element-plus'
 import Cookies from 'js-cookie'
@@ -58,6 +59,12 @@ const routes: RouteRecordRaw[] = [
     path: '/history-gp',
     name: 'MatchGPHistory',
     component: MatchGPHistory,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/history-all',
+    name: 'MatchAllHistory',
+    component: MatchAllHistory,
     meta: { requiresAuth: true }
   },
   {

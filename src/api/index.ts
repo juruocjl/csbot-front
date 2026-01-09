@@ -1,4 +1,4 @@
-import apiClient from './client'
+import apiClient, { fetchAllMatchHistory } from './client'
 import * as schemas from './schemas'
 
 // 使用Zod生成的类型（从schemas.ts导出）
@@ -21,12 +21,8 @@ export type HistoryMatch = schemas.HistoryMatch
 export type MatchHistoryResponse = schemas.MatchHistoryResponse
 export type HistoryGPMatch = schemas.HistoryGPMatch
 export type MatchGPHistoryResponse = schemas.MatchGPHistoryResponse
-
-export interface HistoryQueryParams {
-  steamId: string
-  timeType: string
-  page: number
-}
+export type AllMatchHistoryItem = schemas.AllMatchHistoryItem
+export type AllMatchHistoryResponse = schemas.AllMatchHistoryResponse
 
 // 玩家相关
 export type PlayerUpdate = schemas.PlayerUpdate
@@ -127,6 +123,11 @@ export const commonAPI = {
   getMatchGPHistory: async (params: { steamId: string; timeType: string; page: number }): Promise<MatchGPHistoryResponse> => {
     const response = await apiClient.post('/api/match/historygp', params)
     return schemas.MatchGPHistoryResponseSchema.parse(response)
+  },
+
+  getAllMatchHistory: async (params: { page: number }): Promise<AllMatchHistoryResponse> => {
+    const response = await fetchAllMatchHistory(params)
+    return schemas.AllMatchHistoryResponseSchema.parse(response)
   },
 
   // 更新玩家数据

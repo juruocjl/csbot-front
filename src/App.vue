@@ -18,6 +18,10 @@
           <History :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">历史</span>
         </router-link>
+        <router-link to="/history-all" class="nav-item" @click="mobileMenuOpen = false">
+          <Layers :size="20" :stroke-width="2" />
+          <span v-show="!sidebarCollapsed">全站记录</span>
+        </router-link>
         <router-link to="/rank" class="nav-item" @click="mobileMenuOpen = false">
           <BarChart3 :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">排名</span>
@@ -63,7 +67,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Share2, PiggyBank } from 'lucide-vue-next'
+import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank } from 'lucide-vue-next'
 import { authAPI } from './api'
 
 const route = useRoute()
@@ -78,6 +82,7 @@ const pageTitle = computed<string>(() => {
     '/data': '数据',
     '/history': '历史',
     '/history-gp': '官匹历史',
+    '/history-all': '全站记录',
     '/rank': '排名',
     '/match': '比赛详情',
     '/match-gp': '官匹比赛详情',

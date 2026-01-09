@@ -132,6 +132,27 @@ export const MatchGPInfoSchema = z.object({
   players: z.array(MatchGPPlayerInfoSchema)
 })
 
+export const AllMatchHistoryItemSchema = z.object({
+  matchId: z.string(),
+  timeStamp: z.number().int(),
+  mode: z.string(),
+  mapName: z.string(),
+  isGP: z.boolean(),
+  team1Score: z.number().int(),
+  team2Score: z.number().int(),
+  team1Player: z.array(z.string()),
+  team2Player: z.array(z.string()),
+  winTeam: z.number().int(),
+});
+
+// 完整的响应结构
+export const AllMatchHistoryResponseSchema = z.object({
+  totCount: z.number().int().describe("总比赛数"),
+  pageSize: z.number().int().describe("每页大小"),
+  matches: z.array(AllMatchHistoryItemSchema).describe("比赛列表"),
+});
+
+
 // 玩家相关 Schemas
 export const PlayerUpdateSchema = z.object({
   nickname: z.string(),
@@ -312,14 +333,22 @@ export type InfoSteamIdResponse = z.infer<typeof InfoSteamIdResponseSchema>
 export type InfoQQResponse = z.infer<typeof InfoQQResponseSchema>
 export type UserInfo = z.infer<typeof UserInfoSchema>
 export type SendAuthResponse = z.infer<typeof SendAuthResponseSchema>
+
 export type Player = z.infer<typeof PlayerSchema>
 export type MatchData = z.infer<typeof MatchDataSchema>
+
 export type MatchGPPlayerInfo = z.infer<typeof MatchGPPlayerInfoSchema>
 export type MatchGPInfo = z.infer<typeof MatchGPInfoSchema>
+
 export type HistoryMatch = z.infer<typeof HistoryMatchSchema>
 export type MatchHistoryResponse = z.infer<typeof MatchHistoryResponseSchema>
+
 export type HistoryGPMatch = z.infer<typeof HistoryGPMatchSchema>
 export type MatchGPHistoryResponse = z.infer<typeof MatchGPHistoryResponseSchema>
+
+export type AllMatchHistoryItem = z.infer<typeof AllMatchHistoryItemSchema>
+export type AllMatchHistoryResponse = z.infer<typeof AllMatchHistoryResponseSchema>
+
 export type PlayerBase = z.infer<typeof PlayerBaseSchema>
 export type PlayerUpdate = z.infer<typeof PlayerUpdateSchema>
 export type PlayerDetailItem = z.infer<typeof PlayerDetailItemSchema>

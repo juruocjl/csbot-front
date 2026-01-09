@@ -61,4 +61,12 @@ apiClient.interceptors.response.use(
   }
 )
 
+  export interface HistoryAllQuery {
+    page: number
+  }
+
+  export const fetchAllMatchHistory = (params: HistoryAllQuery) => {
+    return apiClient.post('/api/match/historyall', params)
+  }
+
 export default apiClient

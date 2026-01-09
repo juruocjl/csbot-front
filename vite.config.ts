@@ -4,7 +4,13 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   server: {
-    port: 3000,
-    open: true
+    port: 80,
+    open: true,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8080', // 你的 Nonebot/后端地址
+        changeOrigin: true, // 解决跨域的关键
+      }
+    }
   }
 })
