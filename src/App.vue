@@ -23,7 +23,7 @@
           <span v-show="!sidebarCollapsed">全站记录</span>
         </router-link>
         <router-link to="/rank" class="nav-item" @click="mobileMenuOpen = false">
-          <BarChart3 :size="20" :stroke-width="2" />
+          <Trophy :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">排名</span>
         </router-link>
       </nav>
@@ -67,7 +67,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank } from 'lucide-vue-next'
+import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy } from 'lucide-vue-next'
 import { authAPI } from './api'
 
 const route = useRoute()

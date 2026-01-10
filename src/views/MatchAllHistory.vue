@@ -26,7 +26,7 @@
                 {{ formatMatchId(row.matchId) }}
               </router-link>
               <p class="match-subtext">
-                {{ formatMonthDay(row.timeStamp) }}
+                {{ formatTime(row.timeStamp) }}
               </p>
             </template>
           </el-table-column>
@@ -110,16 +110,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { RefreshCw } from 'lucide-vue-next'
 import { commonAPI, type AllMatchHistoryResponse, type AllMatchHistoryItem } from '../api'
+
+const route = useRoute()
+const router = useRouter()
 
 const loading = ref(false)
 const error = ref<string | null>(null)
 const historyData = ref<AllMatchHistoryResponse | null>(null)
 const matches = ref<AllMatchHistoryItem[]>([])
 const searchTerm = ref('')
-const currentPage = ref(1)
+const currentPage = ref<number>(Number(route.query.page) || 1)
 const pageSize = ref(20)
 const AVATAR_LIMIT = 5
 const AVATAR_PLACEHOLDER = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36"%3E%3Crect fill="%23e5e7eb" width="36" height="36"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="18"%3E%3F%3C/text%3E%3C/svg%3E'
@@ -154,19 +158,14 @@ const filteredMatches = computed(() => {
   })
 })
 
-const gpCount = computed(() => matches.value.filter((item) => item.isGP).length)
-const normalCount = computed(() => matches.value.filter((item) => !item.isGP).length)
 
-const formatTimestamp = (timestamp: number): string => {
-  const date = new Date(timestamp * 1000)
-  return date.toLocaleString('zh-CN')
-}
-
-const formatMonthDay = (timestamp: number): string => {
+const formatTime = (timestamp: number): string => {
   const date = new Date(timestamp * 1000)
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
-  return `${month}-${day}`
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  return `${month}-${day} ${hour}:${minute}`
 }
 
 const formatMode = (mode: string): string => {
@@ -183,16 +182,6 @@ const formatMatchId = (matchId: string): string => {
   return `${beforeAt}...${lastSix}`
 }
 
-const formatTeamPlayers = (players: string[]): string => {
-  if (!players?.length) {
-    return '暂无数据'
-  }
-  if (players.length <= 3) {
-    return players.join(' / ')
-  }
-  return `${players.slice(0, 3).join(' / ')} +${players.length - 3}`
-}
-
 const matchDetailLink = (match: AllMatchHistoryItem): string => {
   const base = match.isGP ? '/match-gp' : '/match'
   return `${base}?id=${match.matchId}`
@@ -206,21 +195,6 @@ const getTeamCellClass = (winTeam: number, teamIndex: number): string => {
   if (winTeam === 0) return '' // 平局，无颜色
   if (winTeam === teamIndex) return 'cell-winner'
   return 'cell-loser'
-}
-
-const getTeamClass = (winTeam: number, teamIndex: number): object => {
-  if (winTeam === 0) return {} // 平局，无颜色
-  return {
-    winner: winTeam === teamIndex,
-    loser: winTeam !== teamIndex
-  }
-}
-
-const getRowClassName = (row: AllMatchHistoryItem): string => {
-  if (row.winTeam === 0) return '' // 平局，无颜色
-  if (row.winTeam === 1) return 'row-team1-winner'
-  if (row.winTeam === 2) return 'row-team2-winner'
-  return ''
 }
 
 const getAvatarUrl = (steamId: string): string => {
@@ -241,13 +215,23 @@ const getRemainingPlayers = (players: string[] = []): number => {
 }
 
 const handlePageChange = async (page: number): Promise<void> => {
-  currentPage.value = page
-  await loadMatches()
+  await router.replace({
+    path: '/history-all',
+    query: {
+      page
+    }
+  })
 }
 
 onMounted(() => {
   loadMatches()
 })
+
+// 监听路由参数变化，执行实际的数据查询
+watch(() => route.query, async (newQuery) => {
+  currentPage.value = Number(newQuery.page) || 1
+  await loadMatches()
+}, { deep: true })
 </script>
 
 <style scoped>
@@ -356,8 +340,8 @@ onMounted(() => {
 .spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid rgba(16, 185, 129, 0.2);
-  border-top-color: #10b981;
+  border: 4px solid #e5e7eb;
+  border-top-color: #6366f1;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

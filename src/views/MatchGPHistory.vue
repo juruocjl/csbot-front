@@ -83,7 +83,7 @@
                 </router-link>
               </div>
               <div style="font-size: 12px; color: #999; margin-top: 4px;">
-                {{ formatMonthDay(row.timeStamp) }}
+                {{ formatTime(row.timeStamp) }}
               </div>
             </template>
           </el-table-column>
@@ -258,12 +258,15 @@ const switchToHistory = (): void => {
   })
 }
 
-const formatMonthDay = (timestamp: number): string => {
+const formatTime = (timestamp: number): string => {
   const date = new Date(timestamp * 1000)
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
-  return `${month}-${day}`
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  return `${month}-${day} ${hour}:${minute}`
 }
+
 
 const formatMatchId = (matchId: string): string => {
   const atIndex = matchId.indexOf('@')

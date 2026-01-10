@@ -81,7 +81,7 @@
                 {{ formatMatchId(row.matchId) }}
               </router-link>
               <p class="match-subtext">
-                {{ row.season }} / {{ formatMonthDay(row.timeStamp) }}
+                {{ row.season }} / {{ formatTime(row.timeStamp) }}
               </p>
             </template>
           </el-table-column>
@@ -269,12 +269,15 @@ const switchToGPHistory = (): void => {
   })
 }
 
-const formatMonthDay = (timestamp: number): string => {
+const formatTime = (timestamp: number): string => {
   const date = new Date(timestamp * 1000)
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
-  return `${month}-${day}`
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  return `${month}-${day} ${hour}:${minute}`
 }
+
 
 const formatMatchId = (matchId: string): string => {
   const atIndex = matchId.indexOf('@')
