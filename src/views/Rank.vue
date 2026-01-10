@@ -36,7 +36,10 @@
 
       <div v-else-if="rankData" class="table-section">
         <div class="result-info">
-          共 <strong>{{ rankData.players.length }}</strong> 个玩家
+          <h1 style="font-size: 40px; color: black">
+             {{ currentRankConfig?.description || queryRankName }} ({{ queryTimeType }})
+          </h1>
+          <div>共 <strong>{{ rankData.players.length }}</strong> 个玩家</div>
         </div>
 
         <el-table :data="rankData.players" style="width: 100%">

@@ -112,7 +112,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { RefreshCw } from 'lucide-vue-next'
 import { commonAPI, type AllMatchHistoryResponse, type AllMatchHistoryItem } from '../api'
 
 const route = useRoute()
