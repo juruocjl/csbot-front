@@ -316,6 +316,9 @@ const valueClass = (value: number | string, threshold: number = 1): string => {
 }
 
 const scoreClass = (playerTeam: number, winTeam: number, scoreTeam: number): string => {
+  // 平局不显示颜色
+  if (winTeam === 0) return ''
+  
   if (playerTeam === scoreTeam) {
     // 是玩家所在的队伍
     return playerTeam === winTeam ? 'win-score' : 'lose-score'

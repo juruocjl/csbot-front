@@ -188,6 +188,9 @@ const matchDetailLink = (match: AllMatchHistoryItem): string => {
 }
 
 const scoreClass = (row: AllMatchHistoryItem, teamIndex: number): string => {
+	// 平局不显示颜色
+	if (row.winTeam === 0) return ''
+	
 	// 判断所有玩家是否在同一边
 	const allOnOne = row.team1Player.length === 0 || row.team2Player.length === 0
 	

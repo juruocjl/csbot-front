@@ -174,6 +174,8 @@ const allPlayersWithTeam = computed<Array<Player & { teamName: string }>>(() => 
 const team1StyleClass = computed<string>(() => {
 	if (matchData.value?.userTeam !== null && matchData.value?.userTeam !== undefined) {
 		if (matchData.value.userTeam === 1) {
+			// 平局不显示颜色
+			if (matchData.value.winTeam === 0) return ''
 			return matchData.value.winTeam === 1 ? 'winner' : 'loser'
 		}
 		return ''
@@ -184,6 +186,8 @@ const team1StyleClass = computed<string>(() => {
 const team2StyleClass = computed<string>(() => {
 	if (matchData.value?.userTeam !== null && matchData.value?.userTeam !== undefined) {
 		if (matchData.value.userTeam === 2) {
+			// 平局不显示颜色
+			if (matchData.value.winTeam === 0) return ''
 			return matchData.value.winTeam === 2 ? 'winner' : 'loser'
 		}
 		return ''
