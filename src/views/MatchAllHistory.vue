@@ -88,9 +88,9 @@
 
           <el-table-column label="比分" align="center">
             <template #default="{ row }">
-              <span :class="scoreClass(row.winTeam, 1)">{{ row.team1Score }}</span>
+              <span :class="scoreClass(row, 1)">{{ row.team1Score }}</span>
               <span class="score-separator">-</span>
-              <span :class="scoreClass(row.winTeam, 2)">{{ row.team2Score }}</span>
+              <span :class="scoreClass(row, 2)">{{ row.team2Score }}</span>
             </template>
           </el-table-column>
         </el-table>
@@ -187,8 +187,23 @@ const matchDetailLink = (match: AllMatchHistoryItem): string => {
   return `${base}?id=${match.matchId}`
 }
 
-const scoreClass = (winTeam: number, teamIndex: number): string => {
-  return winTeam === teamIndex ? 'score-winner' : 'score-loser'
+const scoreClass = (row: AllMatchHistoryItem, teamIndex: number): string => {
+	// 判断所有玩家是否在同一边
+	const allOnOne = row.team1Player.length === 0 || row.team2Player.length === 0
+	
+	if (allOnOne) {
+		// 所有玩家在一边，显示该队的颜色（赢绿输红）
+		const playerTeam = row.team1Player.length > 0 ? 1 : 2
+		if (playerTeam === teamIndex) {
+			// 显示玩家队伍的颜色
+			return row.winTeam === playerTeam ? 'score-winner' : 'score-loser'
+		}
+		// 对方队伍不显示颜色
+		return ''
+	}
+	
+	// 玩家分散在两边，只显示赢得那边的颜色
+	return row.winTeam === teamIndex ? 'score-winner' : ''
 }
 
 const getTeamCellClass = (winTeam: number, teamIndex: number): string => {
@@ -468,7 +483,8 @@ watch(() => route.query, async (newQuery) => {
 }
 
 .score-loser {
-  color: #9ca3af;
+  color: #dc2626;
+  font-weight: 600;
 }
 
 .score-separator {

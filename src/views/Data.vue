@@ -373,7 +373,7 @@
               </div>
             </div>
             <div class="stat-item">
-              <span class="label">有狙击击杀回合占比</span>
+              <span class="label">狙击击杀回合占比</span>
               <div class="inline-value" :class="{ 'above-avg': playerDetail.sniper.roundsWithSniperKillsPercentage.value > playerDetail.sniper.roundsWithSniperKillsPercentage.avgValue }">
                 <span class="val">{{ (playerDetail.sniper.roundsWithSniperKillsPercentage.value * 100).toFixed(1) }}%</span>
                 <span class="avg">/ {{ (playerDetail.sniper.roundsWithSniperKillsPercentage.avgValue * 100).toFixed(1) }}%</span>
