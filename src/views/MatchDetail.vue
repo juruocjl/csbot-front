@@ -425,6 +425,7 @@ onMounted(() => {
 .score-display {
 	display: flex;
 	align-items: center;
+	justify-content: center;
 	gap: 2rem;
 	padding: 1.5rem;
 	background: #f9fafb;
