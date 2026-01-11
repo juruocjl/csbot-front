@@ -33,7 +33,7 @@
 					</div>
 					<div class="info-item">
 						<label>地图</label>
-					<MapIcon :map-name="matchData.mapName" />
+						<MapIcon :map-name="matchData.mapName" />
 					</div>
 				</div>
 				<div class="score-display">
@@ -412,7 +412,6 @@ onMounted(() => {
 .score-display {
 	display: flex;
 	align-items: center;
-	justify-content: center;
 	gap: 2rem;
 	padding: 1.5rem;
 	background: #f9fafb;

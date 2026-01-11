@@ -64,11 +64,9 @@ const handleImageError = (e: Event): void => {
 
 <style scoped>
 .map-icon-container {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 	gap: 0.5rem;
-	justify-content: center;
-	width: fit-content;
 }
 
 .map-icon {

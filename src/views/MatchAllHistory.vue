@@ -44,7 +44,9 @@
 
           <el-table-column label="地图" align="center">
             <template #default="{ row }">
-              <MapIcon :map-name="row.mapName" />
+              <div style="width: 100%; display: flex; justify-content: center;">
+                <MapIcon :map-name="row.mapName" />
+              </div>
             </template>
           </el-table-column>
 
