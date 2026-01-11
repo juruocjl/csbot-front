@@ -33,16 +33,16 @@
 					</div>
 					<div class="info-item">
 						<label>地图</label>
-						<span>{{ matchData.mapName }}</span>
+					<MapIcon :map-name="matchData.mapName" />
 					</div>
 				</div>
 				<div class="score-display">
-					<div class="team-score" :class="{ winner: matchData.winTeam === 1 }">
+					<div class="team-score" :class="team1StyleClass">
 						<span class="team-label">队伍 1</span>
 						<span class="score">{{ matchData.team1Score }}</span>
 					</div>
 					<span class="vs">VS</span>
-					<div class="team-score" :class="{ winner: matchData.winTeam === 2 }">
+					<div class="team-score" :class="team2StyleClass">
 						<span class="team-label">队伍 2</span>
 						<span class="score">{{ matchData.team2Score }}</span>
 					</div>
@@ -131,6 +131,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { commonAPI, type MatchGPPlayerInfo, type MatchGPInfo} from '../api'
 import RankBadgeGP from '../components/RankBadgeGP.vue'
+import MapIcon from '../components/MapIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -155,6 +156,26 @@ const allPlayersWithTeam = computed<Array<MatchGPPlayerInfo & { teamName: string
 		...team1Players.value.map(p => ({ ...p, teamName: '队伍 1' })),
 		...team2Players.value.map(p => ({ ...p, teamName: '队伍 2' }))
 	]
+})
+
+const team1StyleClass = computed<string>(() => {
+	if (matchData.value?.userTeam !== null && matchData.value?.userTeam !== undefined) {
+		if (matchData.value.userTeam === 1) {
+			return matchData.value.winTeam === 1 ? 'winner' : 'loser'
+		}
+		return ''
+	}
+	return matchData.value?.winTeam === 1 ? 'winner' : ''
+})
+
+const team2StyleClass = computed<string>(() => {
+	if (matchData.value?.userTeam !== null && matchData.value?.userTeam !== undefined) {
+		if (matchData.value.userTeam === 2) {
+			return matchData.value.winTeam === 2 ? 'winner' : 'loser'
+		}
+		return ''
+	}
+	return matchData.value?.winTeam === 2 ? 'winner' : ''
 })
 
 
@@ -427,6 +448,15 @@ onMounted(() => {
 
 .team-score.winner .score {
 	color: #059669;
+}
+
+.team-score.loser {
+	border-color: #fca5a5;
+	background: #fef2f2;
+}
+
+.team-score.loser .score {
+	color: #dc2626;
 }
 
 .vs {

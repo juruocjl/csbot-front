@@ -94,7 +94,7 @@
           </el-table-column>
           <el-table-column label="地图" align="center">
             <template #default="{ row }">
-              {{ row.mapName }}
+              <MapIcon :map-name="row.mapName" />
             </template>
           </el-table-column>
           <el-table-column label="比分" align="center">
@@ -168,6 +168,7 @@ import { watchDebounced } from '@vueuse/core'
 import { RefreshCw } from 'lucide-vue-next'
 import RankBadge from '../components/RankBadge.vue'
 import UserChoose from '../components/UserChoose.vue'
+import MapIcon from '../components/MapIcon.vue'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()

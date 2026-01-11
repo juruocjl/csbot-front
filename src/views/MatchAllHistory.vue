@@ -44,7 +44,7 @@
 
           <el-table-column label="地图" align="center">
             <template #default="{ row }">
-              <p class="map-name">{{ row.mapName }}</p>
+              <MapIcon :map-name="row.mapName" />
             </template>
           </el-table-column>
 
@@ -113,6 +113,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { commonAPI, type AllMatchHistoryResponse, type AllMatchHistoryItem } from '../api'
+import MapIcon from '../components/MapIcon.vue'
 
 const route = useRoute()
 const router = useRouter()

@@ -94,7 +94,7 @@
           </el-table-column>
           <el-table-column label="地图" align="center">
             <template #default="{ row }">
-              {{ row.mapName }}
+              <MapIcon :map-name="row.mapName" />
             </template>
           </el-table-column>
           <el-table-column label="比分" align="center">
