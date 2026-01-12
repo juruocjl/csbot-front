@@ -328,6 +328,20 @@ export const UserResponseSchema = z.object({
   users: z.array(UserQQItemSchema)
 })
 
+// AI 相关 Schemas
+export const AIRecordIdsResponseSchema = z.object({
+  isEnd: z.boolean(),
+  recordIds: z.array(z.number())
+})
+
+export const AiRecordResponseSchema = z.object({
+  timestamp: z.number(),
+  role: z.string(),
+  content: z.string().nullable(),
+  tools: z.string().nullable(),
+  reasons: z.string().nullable()
+})
+
 // 自动类型推导
 export type AuthData = z.infer<typeof AuthDataSchema>
 export type VerifyTokenResponse = z.infer<typeof VerifyTokenResponseSchema>
@@ -373,3 +387,6 @@ export type RankResponse = z.infer<typeof RankResponseSchema>
 export type StatusResponse = z.infer<typeof StatusResponseSchema>
 export type UserQQItem = z.infer<typeof UserQQItemSchema>
 export type UserResponse = z.infer<typeof UserResponseSchema>
+
+export type AIRecordIdsResponse = z.infer<typeof AIRecordIdsResponseSchema>
+export type AiRecordResponse = z.infer<typeof AiRecordResponseSchema>

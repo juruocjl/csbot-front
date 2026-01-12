@@ -8,6 +8,7 @@ import MatchHistory from '../views/MatchHistory.vue'
 import MatchGPHistory from '../views/MatchGPHistory.vue'
 import MatchAllHistory from '../views/MatchAllHistory.vue'
 import Rank from '../views/Rank.vue'
+import AIChat from '../views/AIChat.vue'
 import { ElMessage } from 'element-plus'
 import Cookies from 'js-cookie'
 import { authAPI } from '../api'
@@ -71,6 +72,12 @@ const routes: RouteRecordRaw[] = [
     path: '/rank',
     name: 'Rank',
     component: Rank,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/ai-chat',
+    name: 'AIChat',
+    component: AIChat,
     meta: { requiresAuth: true }
   }
 ]

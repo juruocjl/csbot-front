@@ -55,6 +55,10 @@ export type RankResponse = schemas.RankResponse
 // 状态相关
 export type StatusResponse = schemas.StatusResponse
 
+// AI 相关
+export type AIRecordIdsResponse = schemas.AIRecordIdsResponse
+export type AiRecordResponse = schemas.AiRecordResponse
+
 export interface RankQueryParams {
   rankName: string
   timeType: string
@@ -185,5 +189,20 @@ export const systemAPI = {
   getStatus: async (): Promise<StatusResponse> => {
     const response = await apiClient.post('/api/status')
     return schemas.StatusResponseSchema.parse(response)
+  }
+}
+
+// AI API 接口
+export const aiAPI = {
+  // 获取AI聊天记录编号列表
+  getRecordIds: async (chatId: string): Promise<AIRecordIdsResponse> => {
+    const response = await apiClient.post('/api/ai/recordids', { chatId })
+    return schemas.AIRecordIdsResponseSchema.parse(response)
+  },
+
+  // 获取AI聊天记录内容
+  getRecord: async (recordId: number): Promise<AiRecordResponse> => {
+    const response = await apiClient.post('/api/ai/record', { recordId })
+    return schemas.AiRecordResponseSchema.parse(response)
   }
 }

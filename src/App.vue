@@ -26,6 +26,10 @@
           <Trophy :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">排名</span>
         </router-link>
+        <router-link to="/ai-chat" class="nav-item" @click="mobileMenuOpen = false">
+          <MessageSquare :size="20" :stroke-width="2" />
+          <span v-show="!sidebarCollapsed">AI 助手</span>
+        </router-link>
       </nav>
       <div class="sidebar-toggle hidden-sm-and-down" @click="sidebarCollapsed = !sidebarCollapsed">
         <ChevronLeft v-if="!sidebarCollapsed" :size="20" :stroke-width="2" />
@@ -67,7 +71,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy } from 'lucide-vue-next'
+import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy, MessageSquare } from 'lucide-vue-next'
 import { authAPI } from './api'
 
 const route = useRoute()
@@ -84,6 +88,7 @@ const pageTitle = computed<string>(() => {
     '/history-gp': '官匹历史',
     '/history-all': '全站记录',
     '/rank': '排名',
+    '/ai-chat': 'AI 聊天记录',
     '/match': '比赛详情',
     '/match-gp': '官匹比赛详情',
   }
