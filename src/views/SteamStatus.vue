@@ -1,7 +1,10 @@
 <template>
   <div class="steam-status-view">
     <div class="header-row">
-      <h2>游戏状态</h2>
+      <div class="header-left">
+        <h2>游戏状态</h2>
+        <span class="api-status">status: {{ apiStatus }}</span>
+      </div>
       <el-button @click="refreshStatus" :loading="loading">刷新</el-button>
     </div>
 
@@ -70,6 +73,7 @@ interface GameGroup {
 const loading = ref<boolean>(false)
 const errorMessage = ref<string>('')
 const steamStatus = ref<SteamStatusItem[]>([])
+const apiStatus = ref<string>('-')
 
 const playingUsers = computed<SteamStatusItem[]>(() => {
   return steamStatus.value.filter((item) => item.game_appid.trim() !== '')
@@ -112,6 +116,7 @@ const fetchSteamStatus = async (): Promise<void> => {
 
   try {
     const response = await systemAPI.getSteamStatus()
+    apiStatus.value = response.status
     if (response.status !== 'success') {
       errorMessage.value = '获取游戏状态失败：服务返回非 success 状态'
       return
@@ -149,11 +154,22 @@ onMounted(async () => {
   margin-bottom: 1rem;
 }
 
+.header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
 .header-row h2 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
   color: #111827;
+}
+
+.api-status {
+  font-size: 0.82rem;
+  color: #6b7280;
 }
 
 .loading-wrap,
