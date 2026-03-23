@@ -321,7 +321,8 @@ export const SteamStatusItemSchema = z.object({
   game_appid: z.string(),
   game_name: z.string(),
   party_id: z.string(),
-  rich_display: z.string(),
+  party_size: z.string(),
+  rich_display: z.record(z.string(), z.string()),
   state: z.string()
 })
 

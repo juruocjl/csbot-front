@@ -37,7 +37,7 @@
               <div class="player-line">
                 <el-tag :type="item.state === 'online' ? 'success' : 'info'" size="small">{{ item.state }}</el-tag>
               </div>
-              <div class="player-status" v-if="item.rich_display">{{ item.rich_display }}</div>
+              <div class="player-status" v-if="item.rich_display.steam_display">{{ item.rich_display.steam_display }}</div>
               <div class="player-status" v-else>无详细状态</div>
             </div>
           </div>
