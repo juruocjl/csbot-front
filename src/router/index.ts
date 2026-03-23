@@ -9,6 +9,7 @@ import MatchGPHistory from '../views/MatchGPHistory.vue'
 import MatchAllHistory from '../views/MatchAllHistory.vue'
 import Rank from '../views/Rank.vue'
 import AIChat from '../views/AIChat.vue'
+import SteamStatus from '../views/SteamStatus.vue'
 import { ElMessage } from 'element-plus'
 import Cookies from 'js-cookie'
 import { authAPI } from '../api'
@@ -78,6 +79,12 @@ const routes: RouteRecordRaw[] = [
     path: '/ai-chat',
     name: 'AIChat',
     component: AIChat,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/steam-status',
+    name: 'SteamStatus',
+    component: SteamStatus,
     meta: { requiresAuth: true }
   }
 ]

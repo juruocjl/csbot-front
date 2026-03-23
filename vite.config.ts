@@ -8,7 +8,7 @@ export default defineConfig({
     open: true,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8080', // 你的 Nonebot/后端地址
+        target: 'http://cgserver:1234', // 你的 Nonebot/后端地址
         changeOrigin: true, // 解决跨域的关键
       }
     }

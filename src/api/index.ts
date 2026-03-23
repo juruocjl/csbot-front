@@ -54,6 +54,8 @@ export type RankResponse = schemas.RankResponse
 
 // 状态相关
 export type StatusResponse = schemas.StatusResponse
+export type SteamStatusItem = schemas.SteamStatusItem
+export type SteamStatusResponse = schemas.SteamStatusResponse
 
 // AI 相关
 export type AIRecordIdsResponse = schemas.AIRecordIdsResponse
@@ -189,6 +191,12 @@ export const systemAPI = {
   getStatus: async (): Promise<StatusResponse> => {
     const response = await apiClient.post('/api/status')
     return schemas.StatusResponseSchema.parse(response)
+  },
+
+  // 获取 Steam 在线状态
+  getSteamStatus: async (): Promise<SteamStatusResponse> => {
+    const response = await apiClient.post('/api/steam/status')
+    return schemas.SteamStatusResponseSchema.parse(response)
   }
 }
 

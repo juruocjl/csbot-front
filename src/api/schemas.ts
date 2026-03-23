@@ -316,6 +316,20 @@ export const StatusResponseSchema = z.object({
   messageCount: z.string()
 })
 
+export const SteamStatusItemSchema = z.object({
+  uid: z.string(),
+  game_appid: z.string(),
+  game_name: z.string(),
+  party_id: z.string(),
+  rich_display: z.string(),
+  state: z.string()
+})
+
+export const SteamStatusResponseSchema = z.object({
+  status: z.string(),
+  data: z.array(SteamStatusItemSchema)
+})
+
 // 用户相关 Schemas
 export const UserQQItemSchema = z.object({
   qq: z.string(),
@@ -385,6 +399,8 @@ export type RankConfigResponse = z.infer<typeof RankConfigResponseSchema>
 export type RankItem = z.infer<typeof RankItemSchema>
 export type RankResponse = z.infer<typeof RankResponseSchema>
 export type StatusResponse = z.infer<typeof StatusResponseSchema>
+export type SteamStatusItem = z.infer<typeof SteamStatusItemSchema>
+export type SteamStatusResponse = z.infer<typeof SteamStatusResponseSchema>
 export type UserQQItem = z.infer<typeof UserQQItemSchema>
 export type UserResponse = z.infer<typeof UserResponseSchema>
 
