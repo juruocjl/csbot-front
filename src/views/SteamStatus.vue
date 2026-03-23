@@ -34,11 +34,15 @@
         </template>
 
         <div class="player-list">
-          <div v-for="item in group.players" :key="item.uid" class="player-row">
-            <el-avatar :size="36" :src="getAvatarSrc(item.uid)" />
-            <div class="player-content">
-              <div class="player-status" v-if="item.rich_display.steam_display">{{ item.rich_display.steam_display }}</div>
-              <div class="player-status" v-else>无详细状态</div>
+          <div v-for="partyBlock in getPartyBlocks(group.players)" :key="partyBlock.id" class="party-box" :class="{ grouped: partyBlock.grouped }">
+            <div v-for="item in partyBlock.players" :key="item.uid" class="player-row">
+              <el-avatar :size="36" :src="getAvatarSrc(item.uid)" />
+              <div class="player-content">
+                <div class="player-status" v-if="item.rich_display.status">{{ item.rich_display.status }}</div>
+                <div class="player-status" v-if="item.rich_display.desc">{{ item.rich_display.desc }}</div>
+                <div class="player-status" v-else-if="item.rich_display.steam_display">{{ item.rich_display.steam_display }}</div>
+                <div class="player-status" v-else>无详细状态</div>
+              </div>
             </div>
           </div>
         </div>
@@ -68,6 +72,12 @@ import { systemAPI, type SteamStatusItem } from '../api'
 interface GameGroup {
   gameName: string
   players: SteamStatusItem[]
+}
+
+interface PartyBlock {
+  id: string
+  players: SteamStatusItem[]
+  grouped: boolean
 }
 
 const loading = ref<boolean>(false)
@@ -108,6 +118,53 @@ const groupedGames = computed<GameGroup[]>(() => {
 
 const getAvatarSrc = (uid: string): string => {
   return `https://q1.qlogo.cn/g?b=qq&nk=${uid}&s=640`
+}
+
+const getPlayerGroupKey = (item: SteamStatusItem): string => {
+  return item.rich_display.steam_player_group?.trim() ?? ''
+}
+
+const getPartyBlocks = (players: SteamStatusItem[]): PartyBlock[] => {
+  const groupCounter = new Map<string, number>()
+  for (const item of players) {
+    const key = getPlayerGroupKey(item)
+    if (!key) {
+      continue
+    }
+    groupCounter.set(key, (groupCounter.get(key) ?? 0) + 1)
+  }
+
+  const blocks: PartyBlock[] = []
+  const groupedMap = new Map<string, SteamStatusItem[]>()
+
+  for (const item of players) {
+    const key = getPlayerGroupKey(item)
+    const canGroup = key !== '' && (groupCounter.get(key) ?? 0) > 1
+
+    if (!canGroup) {
+      blocks.push({
+        id: `single-${item.uid}`,
+        players: [item],
+        grouped: false
+      })
+      continue
+    }
+
+    if (!groupedMap.has(key)) {
+      groupedMap.set(key, [])
+    }
+    groupedMap.get(key)?.push(item)
+  }
+
+  for (const [key, groupedPlayers] of groupedMap.entries()) {
+    blocks.push({
+      id: `group-${key}`,
+      players: groupedPlayers,
+      grouped: true
+    })
+  }
+
+  return blocks
 }
 
 const fetchSteamStatus = async (): Promise<void> => {
@@ -208,6 +265,17 @@ onMounted(async () => {
   gap: 0.5rem;
 }
 
+.party-box {
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+
+.party-box.grouped {
+  padding: 0.3rem;
+  border-color: #fbbf24;
+  background: #fffbeb;
+}
+
 .player-row {
   display: flex;
   gap: 0.5rem;
@@ -218,11 +286,16 @@ onMounted(async () => {
   background: #fafafa;
 }
 
+.party-box.grouped .player-row {
+  background: transparent;
+}
+
 .player-content {
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
+  gap: 0.35rem;
 }
 
 .player-status {
