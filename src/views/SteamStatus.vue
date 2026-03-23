@@ -38,10 +38,7 @@
             <div v-for="item in partyBlock.players" :key="item.uid" class="player-row">
               <el-avatar :size="36" :src="getAvatarSrc(item.uid)" />
               <div class="player-content">
-                <div class="player-status" v-if="item.rich_display.status">{{ item.rich_display.status }}</div>
-                <div class="player-status" v-if="item.rich_display.desc">{{ item.rich_display.desc }}</div>
-                <div class="player-status" v-else-if="item.rich_display.steam_display">{{ item.rich_display.steam_display }}</div>
-                <div class="player-status" v-else>无详细状态</div>
+                <div class="player-status">{{ formatRichDisplay(item.rich_display) }}</div>
               </div>
             </div>
           </div>
@@ -118,6 +115,28 @@ const groupedGames = computed<GameGroup[]>(() => {
 
 const getAvatarSrc = (uid: string): string => {
   return `https://q1.qlogo.cn/g?b=qq&nk=${uid}&s=640`
+}
+
+const formatRichDisplay = (richDisplay: Record<string, string>): string => {
+
+  const status = richDisplay.status?.trim() ?? ''
+  const desc = richDisplay.desc?.trim() ?? ''
+  if (status && desc) {
+    return `${status} | ${desc}`
+  }
+  if (status) {
+    return status
+  }
+  if (desc) {
+    return desc
+  }
+  
+  const steamDisplay = richDisplay.steam_display?.trim()
+  if (steamDisplay) {
+    return steamDisplay
+  }
+
+  return '无详细状态'
 }
 
 const getPlayerGroupKey = (item: SteamStatusItem): string => {
