@@ -17,8 +17,8 @@
       :closable="false"
     />
 
-    <div v-else-if="playingUsers.length === 0" class="empty-wrap">
-      <el-empty description="当前没有人在游玩中" />
+    <div v-else-if="onlineUsers.length === 0" class="empty-wrap">
+      <el-empty description="当前无人在线" />
     </div>
 
     <div v-else class="group-list">
@@ -32,15 +32,25 @@
 
         <div class="player-list">
           <div v-for="item in group.players" :key="item.uid" class="player-row">
-            <el-avatar :size="44" :src="getAvatarSrc(item.uid)" />
+            <el-avatar :size="36" :src="getAvatarSrc(item.uid)" />
             <div class="player-content">
-              <div class="player-line">
-                <el-tag :type="item.state === 'online' ? 'success' : 'info'" size="small">{{ item.state }}</el-tag>
-              </div>
               <div class="player-status" v-if="item.rich_display.steam_display">{{ item.rich_display.steam_display }}</div>
               <div class="player-status" v-else>无详细状态</div>
             </div>
           </div>
+        </div>
+      </el-card>
+
+      <el-card v-if="onlineIdleUsers.length > 0" class="group-card" shadow="never">
+        <template #header>
+          <div class="group-header">
+            <div class="group-title">在线但未在游戏中</div>
+            <el-tag type="warning">{{ onlineIdleUsers.length }} 人</el-tag>
+          </div>
+        </template>
+
+        <div class="idle-avatar-list">
+          <el-avatar v-for="item in onlineIdleUsers" :key="item.uid" :size="36" :src="getAvatarSrc(item.uid)" />
         </div>
       </el-card>
     </div>
@@ -63,6 +73,14 @@ const steamStatus = ref<SteamStatusItem[]>([])
 
 const playingUsers = computed<SteamStatusItem[]>(() => {
   return steamStatus.value.filter((item) => item.game_appid.trim() !== '')
+})
+
+const onlineIdleUsers = computed<SteamStatusItem[]>(() => {
+  return steamStatus.value.filter((item) => item.state === 'online' && item.game_appid.trim() === '')
+})
+
+const onlineUsers = computed<SteamStatusItem[]>(() => {
+  return steamStatus.value.filter((item) => item.state === 'online')
 })
 
 const groupedGames = computed<GameGroup[]>(() => {
@@ -171,43 +189,47 @@ onMounted(async () => {
 .player-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .player-row {
   display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-  padding: 0.625rem;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.45rem 0.55rem;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #fafafa;
 }
 
 .player-content {
   flex: 1;
   min-width: 0;
-}
-
-.player-line {
-  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
 }
 
 .player-status {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.84rem;
+  font-weight: 500;
   color: #374151;
-  line-height: 1.45;
+  line-height: 1.35;
   word-break: break-word;
+}
+
+.idle-avatar-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 @media (max-width: 768px) {
   .player-row {
-    padding: 0.5rem;
+    padding: 0.4rem 0.5rem;
   }
 
   .player-status {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
 }
 </style>
