@@ -167,6 +167,7 @@ const getPartyBlocks = (players: SteamStatusItem[]): PartyBlock[] => {
   }
 
   const blocks: PartyBlock[] = []
+  const singlePlayers: SteamStatusItem[] = []
   const groupedMap = new Map<string, SteamStatusItem[]>()
 
   for (const item of players) {
@@ -174,11 +175,7 @@ const getPartyBlocks = (players: SteamStatusItem[]): PartyBlock[] => {
     const canGroup = key !== '' && (groupCounter.get(key) ?? 0) > 1
 
     if (!canGroup) {
-      blocks.push({
-        id: `single-${item.uid}`,
-        players: [item],
-        grouped: false
-      })
+      singlePlayers.push(item)
       continue
     }
 
@@ -187,6 +184,16 @@ const getPartyBlocks = (players: SteamStatusItem[]): PartyBlock[] => {
     }
     groupedMap.get(key)?.push(item)
   }
+
+  singlePlayers
+    .sort((a, b) => formatRichPresenceString(a).localeCompare(formatRichPresenceString(b), 'zh-Hans-CN'))
+    .forEach((item) => {
+      blocks.push({
+        id: `single-${item.uid}`,
+        players: [item],
+        grouped: false
+      })
+    })
 
   for (const [key, groupedPlayers] of groupedMap.entries()) {
     blocks.push({
