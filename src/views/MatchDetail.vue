@@ -155,12 +155,12 @@ const matchData = ref<MatchData | null>(null)
 
 const team1Players = computed<Player[]>(() => {
 	const list = matchData.value?.players.filter((p) => p.team === 1) || []
-	return [...list].sort((a, b) => Number(b.rating) - Number(a.rating))
+	return [...list].sort((a, b) => Number(b.we) - Number(a.we))
 })
 
 const team2Players = computed<Player[]>(() => {
 	const list = matchData.value?.players.filter((p) => p.team === 2) || []
-	return [...list].sort((a, b) => Number(b.rating) - Number(a.rating))
+	return [...list].sort((a, b) => Number(b.we) - Number(a.we))
 })
 
 
