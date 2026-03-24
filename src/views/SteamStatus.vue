@@ -46,7 +46,7 @@
             <div v-for="item in partyBlock.players" :key="item.uid" class="player-row">
               <el-avatar :size="36" :src="getAvatarSrc(item.uid)" />
               <div class="player-content">
-                <div class="player-status">{{ formatRichPresenceString(item.rich_presence_string) }}</div>
+                <div class="player-status">{{ formatRichPresenceString(item) }}</div>
               </div>
             </div>
           </div>
@@ -130,12 +130,26 @@ const getAvatarSrc = (uid: string): string => {
   return `https://q1.qlogo.cn/g?b=qq&nk=${uid}&s=640`
 }
 
-const formatRichPresenceString = (richPresenceString: string): string => {
-  const text = richPresenceString.trim()
-  if (text) {
-    return text
+const formatRichPresenceString = (item: SteamStatusItem): string => {
+  const base = item.rich_presence_string.trim() || '无详细状态'
+  const isWorkshop = item.game_appid === '730' && item.rich_presence.steam_display === '#display_GameWkshpMap'
+  if (!isWorkshop) {
+    return base
   }
-  return '无详细状态'
+
+  const mapValue = item.rich_presence['game:map']?.trim() ?? ''
+  const scoreValue = item.rich_presence['game:score']?.trim() ?? ''
+  const extras: string[] = []
+  if (mapValue) {
+    extras.push(`${mapValue}`)
+  }
+  if (scoreValue) {
+    extras.push(`${scoreValue}`)
+  }
+  if (extras.length === 0) {
+    return base
+  }
+  return `${base} ${extras.join(' ')}`
 }
 
 const getPlayerGroupKey = (item: SteamStatusItem): string => {
@@ -331,8 +345,9 @@ onMounted(async () => {
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: center;
-  gap: 0.35rem;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
 }
 
 .player-status {
