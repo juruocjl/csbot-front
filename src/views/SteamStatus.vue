@@ -28,7 +28,15 @@
       <el-card v-for="group in groupedGames" :key="group.gameName" class="group-card" shadow="never">
         <template #header>
           <div class="group-header">
-            <div class="group-title">{{ group.gameName }}</div>
+            <div class="group-title-wrap">
+              <img
+                v-if="group.players[0]?.game_icon"
+                :src="group.players[0].game_icon"
+                :alt="group.gameName"
+                class="game-icon"
+              />
+              <div class="group-title">{{ group.gameName }}</div>
+            </div>
             <el-tag type="info">{{ group.players.length }} 人</el-tag>
           </div>
         </template>
@@ -38,7 +46,7 @@
             <div v-for="item in partyBlock.players" :key="item.uid" class="player-row">
               <el-avatar :size="36" :src="getAvatarSrc(item.uid)" />
               <div class="player-content">
-                <div class="player-status">{{ formatRichDisplay(item.rich_display) }}</div>
+                <div class="player-status">{{ formatRichPresenceString(item.rich_presence_string) }}</div>
               </div>
             </div>
           </div>
@@ -86,12 +94,17 @@ const playingUsers = computed<SteamStatusItem[]>(() => {
   return steamStatus.value.filter((item) => item.game_appid.trim() !== '')
 })
 
+const isOnlineState = (state: string): boolean => {
+  const normalized = state.trim().toLowerCase()
+  return normalized === 'online' || normalized === '在线'
+}
+
 const onlineIdleUsers = computed<SteamStatusItem[]>(() => {
-  return steamStatus.value.filter((item) => item.state === 'online' && item.game_appid.trim() === '')
+  return steamStatus.value.filter((item) => isOnlineState(item.state) && item.game_appid.trim() === '')
 })
 
 const onlineUsers = computed<SteamStatusItem[]>(() => {
-  return steamStatus.value.filter((item) => item.state === 'online')
+  return steamStatus.value.filter((item) => isOnlineState(item.state))
 })
 
 const groupedGames = computed<GameGroup[]>(() => {
@@ -117,30 +130,16 @@ const getAvatarSrc = (uid: string): string => {
   return `https://q1.qlogo.cn/g?b=qq&nk=${uid}&s=640`
 }
 
-const formatRichDisplay = (richDisplay: Record<string, string>): string => {
-
-  const status = richDisplay.status?.trim() ?? ''
-  const desc = richDisplay.desc?.trim() ?? ''
-  if (status && desc) {
-    return `${status} | ${desc}`
+const formatRichPresenceString = (richPresenceString: string): string => {
+  const text = richPresenceString.trim()
+  if (text) {
+    return text
   }
-  if (status) {
-    return status
-  }
-  if (desc) {
-    return desc
-  }
-  
-  const steamDisplay = richDisplay.steam_display?.trim()
-  if (steamDisplay) {
-    return steamDisplay
-  }
-
   return '无详细状态'
 }
 
 const getPlayerGroupKey = (item: SteamStatusItem): string => {
-  return item.rich_display.steam_player_group?.trim() ?? ''
+  return item.rich_presence.steam_player_group?.trim() ?? ''
 }
 
 const getPartyBlocks = (players: SteamStatusItem[]): PartyBlock[] => {
@@ -266,10 +265,29 @@ onMounted(async () => {
   border-radius: 10px;
 }
 
+.group-card :deep(.el-card__header) {
+  padding: 0.5rem 0.75rem;
+}
+
 .group-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.group-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.game-icon {
+  height: auto;
+  max-height: 30px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
 }
 
 .group-title {
