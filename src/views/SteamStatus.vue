@@ -43,6 +43,9 @@
 
         <div class="player-list">
           <div v-for="partyBlock in getPartyBlocks(group.players)" :key="partyBlock.id" class="party-box" :class="{ grouped: partyBlock.grouped }">
+            <div v-if="partyBlock.grouped && getMissingPartyCount(partyBlock) > 0" class="party-hint">
+              正在与其他 {{ getMissingPartyCount(partyBlock) }} 人一起游戏
+            </div>
             <div v-for="item in partyBlock.players" :key="item.uid" class="player-row">
               <el-avatar :size="36" :src="getAvatarSrc(item.uid)" />
               <div class="player-content">
@@ -156,6 +159,14 @@ const getPlayerGroupKey = (item: SteamStatusItem): string => {
   return item.rich_presence.steam_player_group?.trim() ?? ''
 }
 
+const getPartySize = (item: SteamStatusItem): number => {
+  const partySize = Number.parseInt(item.party_size, 10)
+  if (Number.isNaN(partySize) || partySize <= 0) {
+    return 1
+  }
+  return partySize
+}
+
 const getPartyBlocks = (players: SteamStatusItem[]): PartyBlock[] => {
   const groupCounter = new Map<string, number>()
   for (const item of players) {
@@ -172,9 +183,19 @@ const getPartyBlocks = (players: SteamStatusItem[]): PartyBlock[] => {
 
   for (const item of players) {
     const key = getPlayerGroupKey(item)
-    const canGroup = key !== '' && (groupCounter.get(key) ?? 0) > 1
+    const forceGroupedByPartySize = getPartySize(item) > 1
+    const canGroupByKey = key !== '' && (groupCounter.get(key) ?? 0) > 1
+    const canGroup = key !== '' && (canGroupByKey || forceGroupedByPartySize)
 
     if (!canGroup) {
+      if (forceGroupedByPartySize) {
+        blocks.push({
+          id: `single-group-${item.uid}`,
+          players: [item],
+          grouped: true
+        })
+        continue
+      }
       singlePlayers.push(item)
       continue
     }
@@ -204,6 +225,15 @@ const getPartyBlocks = (players: SteamStatusItem[]): PartyBlock[] => {
   }
 
   return blocks
+}
+
+const getMissingPartyCount = (partyBlock: PartyBlock): number => {
+  if (!partyBlock.grouped || partyBlock.players.length === 0) {
+    return 0
+  }
+
+  const partySize = getPartySize(partyBlock.players[0])
+  return Math.max(0, partySize - partyBlock.players.length)
 }
 
 const fetchSteamStatus = async (): Promise<void> => {
@@ -332,6 +362,12 @@ onMounted(async () => {
   padding: 0.3rem;
   border-color: #fbbf24;
   background: #fffbeb;
+}
+
+.party-hint {
+  font-size: 0.76rem;
+  color: #92400e;
+  margin: 0.1rem 0.25rem 0.35rem;
 }
 
 .player-row {

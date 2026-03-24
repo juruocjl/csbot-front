@@ -1,6 +1,6 @@
 <template>
   <el-container class="app-container">
-    <el-aside width="auto" class="sidebar" :class="{ collapsed: sidebarCollapsed, active: mobileMenuOpen }">
+    <el-aside v-if="!hideSidebar" width="auto" class="sidebar" :class="{ collapsed: sidebarCollapsed, active: mobileMenuOpen }">
       <div class="logo">
         <h2 v-show="!sidebarCollapsed">CSBOT</h2>
         <h2 v-show="sidebarCollapsed" class="logo-icon"><PiggyBank /></h2>
@@ -42,7 +42,7 @@
     </el-aside>
     <el-container class="main-container" @click="mobileMenuOpen = false">
       <el-header class="header">
-        <el-button class="mobile-menu-btn hidden-md-and-up" @click.stop="mobileMenuOpen = !mobileMenuOpen">
+        <el-button v-if="!hideSidebar" class="mobile-menu-btn hidden-md-and-up" @click.stop="mobileMenuOpen = !mobileMenuOpen">
           <Menu :size="20" :stroke-width="2" />
         </el-button>
         <div class="header-left">
@@ -83,6 +83,16 @@ const router = useRouter()
 const mobileMenuOpen = ref<boolean>(false)
 const sidebarCollapsed = ref<boolean>(localStorage.getItem('sidebarCollapsed') !== 'false')
 const showName = ref<string>('用户')
+
+const hideSidebar = computed<boolean>(() => {
+  const rawValue = route.query.hideSidebar
+  const value = Array.isArray(rawValue) ? rawValue[0] : rawValue
+  if (!value) {
+    return false
+  }
+  const normalized = String(value).trim().toLowerCase()
+  return normalized === 'true' || normalized === '1' || normalized === 'yes'
+})
 
 const pageTitle = computed<string>(() => {
   const titles: Record<string, string> = {
@@ -147,6 +157,12 @@ onMounted(async () => {
 // 路由变化时关闭移动菜单
 watch(() => route.path, () => {
   mobileMenuOpen.value = false
+})
+
+watch(hideSidebar, (newValue) => {
+  if (newValue) {
+    mobileMenuOpen.value = false
+  }
 })
 </script>
 
