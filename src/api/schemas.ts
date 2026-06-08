@@ -328,6 +328,7 @@ export const MajorHomeworkRankResponseSchema = z.object({
   stage: z.string(),
   categories: z.array(z.string()),
   teams: z.array(z.string()),
+  resultPicks: z.record(z.string(), z.array(MajorHomeworkPickSchema)),
   players: z.array(MajorHomeworkRankItemSchema)
 })
 

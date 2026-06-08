@@ -29,6 +29,24 @@
           </tr>
         </thead>
         <tbody>
+          <tr class="result-row">
+            <td class="avatar-cell result-label">赛果</td>
+            <td class="rate-cell result-rate">-</td>
+            <td class="choices-cell">
+              <div class="choices-grid">
+                <button
+                  v-for="(pick, index) in flatResultPicks()"
+                  :key="`result-${index}-${pick.category}-${pick.team}`"
+                  class="team-pick"
+                  :class="[pick.team === '?' ? 'status-unknown' : `status-${pick.status}`]"
+                  :title="pick.team === '?' ? '未确定' : `${pick.team} ${pick.wins}-${pick.losses}`"
+                >
+                  <img v-if="pick.logo" :src="pick.logo" :alt="pick.team" loading="eager">
+                  <span v-else>{{ pick.team }}</span>
+                </button>
+              </div>
+            </td>
+          </tr>
           <tr v-for="player in rankData.players" :key="player.uid">
             <td class="avatar-cell">
               <img class="avatar" :src="player.avatar" alt="" loading="lazy">
@@ -97,6 +115,17 @@ const flatPicks = (player: MajorHomeworkRankItem): MajorHomeworkPick[] => {
     ...(player.picks['3-0'] || []),
     ...(player.picks['3-1/3-2'] || []),
     ...(player.picks['0-3'] || []),
+  ]
+}
+
+const flatResultPicks = (): MajorHomeworkPick[] => {
+  if (!rankData.value) {
+    return []
+  }
+  return [
+    ...(rankData.value.resultPicks['3-0'] || []),
+    ...(rankData.value.resultPicks['3-1/3-2'] || []),
+    ...(rankData.value.resultPicks['0-3'] || []),
   ]
 }
 
@@ -215,6 +244,24 @@ onMounted(loadRankData)
   font-weight: 700;
 }
 
+.result-row {
+  background: #fbfdff;
+}
+
+.homework-table tbody .result-row:hover {
+  background: #fbfdff;
+}
+
+.result-label {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.result-rate {
+  color: #94a3b8;
+}
+
 .choices-cell {
   width: var(--choices-width);
   min-width: var(--choices-width);
@@ -289,6 +336,16 @@ onMounted(loadRankData)
 .status-pending {
   border-color: #2563eb;
   background: #dbeafe;
+}
+
+.status-unknown {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.status-unknown span {
+  color: #64748b;
+  font-size: 18px;
 }
 
 @media (max-width: 768px) {
