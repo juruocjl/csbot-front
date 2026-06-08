@@ -8,6 +8,7 @@ import MatchHistory from '../views/MatchHistory.vue'
 import MatchGPHistory from '../views/MatchGPHistory.vue'
 import MatchAllHistory from '../views/MatchAllHistory.vue'
 import Rank from '../views/Rank.vue'
+import MajorHomeworkRank from '../views/MajorHomeworkRank.vue'
 import AIChat from '../views/AIChat.vue'
 import SteamStatus from '../views/SteamStatus.vue'
 import { ElMessage } from 'element-plus'
@@ -73,6 +74,12 @@ const routes: RouteRecordRaw[] = [
     path: '/rank',
     name: 'Rank',
     component: Rank,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/major-homework',
+    name: 'MajorHomeworkRank',
+    component: MajorHomeworkRank,
     meta: { requiresAuth: true }
   },
   {

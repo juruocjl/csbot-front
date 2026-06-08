@@ -51,6 +51,9 @@ export type UserResponse = schemas.UserResponse
 // 排名相关
 export type RankItem = schemas.RankItem
 export type RankResponse = schemas.RankResponse
+export type MajorHomeworkPick = schemas.MajorHomeworkPick
+export type MajorHomeworkRankItem = schemas.MajorHomeworkRankItem
+export type MajorHomeworkRankResponse = schemas.MajorHomeworkRankResponse
 
 // 状态相关
 export type StatusResponse = schemas.StatusResponse
@@ -186,6 +189,13 @@ export const rankAPI = {
 }
 
 // 系统状态 API 接口
+export const majorHomeworkAPI = {
+  getRank: async (): Promise<MajorHomeworkRankResponse> => {
+    const response = await apiClient.post('/api/major/homework/rank')
+    return schemas.MajorHomeworkRankResponseSchema.parse(response)
+  }
+}
+
 export const systemAPI = {
   // 获取服务器状态
   getStatus: async (): Promise<StatusResponse> => {

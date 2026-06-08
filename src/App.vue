@@ -26,6 +26,10 @@
           <Trophy :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">排名</span>
         </router-link>
+        <router-link to="/major-homework" class="nav-item" @click="mobileMenuOpen = false">
+          <ClipboardCheck :size="20" :stroke-width="2" />
+          <span v-show="!sidebarCollapsed">作业排名</span>
+        </router-link>
         <router-link to="/ai-chat" class="nav-item" @click="mobileMenuOpen = false">
           <MessageSquare :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">AI 助手</span>
@@ -75,7 +79,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy, MessageSquare, Gamepad2 } from 'lucide-vue-next'
+import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy, MessageSquare, Gamepad2, ClipboardCheck } from 'lucide-vue-next'
 import { authAPI } from './api'
 
 const route = useRoute()
@@ -102,6 +106,7 @@ const pageTitle = computed<string>(() => {
     '/history-gp': '官匹历史',
     '/history-all': '全站记录',
     '/rank': '排名',
+    '/major-homework': '作业排名',
     '/ai-chat': 'AI 聊天记录',
     '/steam-status': '游戏状态',
     '/match': '比赛详情',

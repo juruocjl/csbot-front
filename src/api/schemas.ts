@@ -306,6 +306,31 @@ export const RankResponseSchema = z.object({
   players: z.array(RankItemSchema)
 })
 
+export const MajorHomeworkPickSchema = z.object({
+  team: z.string(),
+  category: z.string(),
+  status: z.enum(['correct', 'wrong', 'pending']),
+  logo: z.string().nullable(),
+  wins: z.number(),
+  losses: z.number(),
+  recordStatus: z.string()
+})
+
+export const MajorHomeworkRankItemSchema = z.object({
+  uid: z.string(),
+  avatar: z.string(),
+  probability: z.number().nullable(),
+  expected: z.number().nullable(),
+  picks: z.record(z.string(), z.array(MajorHomeworkPickSchema))
+})
+
+export const MajorHomeworkRankResponseSchema = z.object({
+  stage: z.string(),
+  categories: z.array(z.string()),
+  teams: z.array(z.string()),
+  players: z.array(MajorHomeworkRankItemSchema)
+})
+
 export const StatusResponseSchema = z.object({
   cpuUsage: z.number(),
   memoryTotal: z.number(),
@@ -401,6 +426,9 @@ export type RankConfigItem = z.infer<typeof RankConfigItemSchema>
 export type RankConfigResponse = z.infer<typeof RankConfigResponseSchema>
 export type RankItem = z.infer<typeof RankItemSchema>
 export type RankResponse = z.infer<typeof RankResponseSchema>
+export type MajorHomeworkPick = z.infer<typeof MajorHomeworkPickSchema>
+export type MajorHomeworkRankItem = z.infer<typeof MajorHomeworkRankItemSchema>
+export type MajorHomeworkRankResponse = z.infer<typeof MajorHomeworkRankResponseSchema>
 export type StatusResponse = z.infer<typeof StatusResponseSchema>
 export type SteamStatusItem = z.infer<typeof SteamStatusItemSchema>
 export type SteamStatusResponse = z.infer<typeof SteamStatusResponseSchema>
