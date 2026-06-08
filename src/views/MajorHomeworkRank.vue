@@ -19,8 +19,12 @@
           <tr>
             <th class="avatar-col">头像</th>
             <th class="rate-col">正确率</th>
-            <th v-for="category in rankData.categories" :key="category">
-              {{ category }}
+            <th class="choices-col">
+              <div class="choice-header-grid">
+                <span class="label-30">3-0</span>
+                <span class="label-advance">晋级</span>
+                <span class="label-03">0-3</span>
+              </div>
             </th>
           </tr>
         </thead>
@@ -30,11 +34,11 @@
               <img class="avatar" :src="player.avatar" alt="" loading="lazy">
             </td>
             <td class="rate-cell">{{ formatPercent(player.probability) }}</td>
-            <td v-for="category in rankData.categories" :key="category" class="pick-cell">
-              <div class="pick-list" :class="`pick-list-${categoryClass(category)}`">
+            <td class="choices-cell">
+              <div class="choices-grid">
                 <button
-                  v-for="pick in player.picks[category] || []"
-                  :key="`${player.uid}-${category}-${pick.team}`"
+                  v-for="pick in flatPicks(player)"
+                  :key="`${player.uid}-${pick.category}-${pick.team}`"
                   class="team-pick"
                   :class="`status-${pick.status}`"
                   :title="`${pick.team} ${pick.wins}-${pick.losses}`"
@@ -57,7 +61,7 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { RefreshCw } from 'lucide-vue-next'
-import { majorHomeworkAPI, type MajorHomeworkRankResponse } from '../api'
+import { majorHomeworkAPI, type MajorHomeworkPick, type MajorHomeworkRankItem, type MajorHomeworkRankResponse } from '../api'
 
 const rankData = ref<MajorHomeworkRankResponse | null>(null)
 const loading = ref<boolean>(false)
@@ -88,8 +92,12 @@ const shortTeamName = (team: string): string => {
   return team.slice(0, 3).toUpperCase()
 }
 
-const categoryClass = (category: string): string => {
-  return category.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase()
+const flatPicks = (player: MajorHomeworkRankItem): MajorHomeworkPick[] => {
+  return [
+    ...(player.picks['3-0'] || []),
+    ...(player.picks['3-1/3-2'] || []),
+    ...(player.picks['0-3'] || []),
+  ]
 }
 
 onMounted(loadRankData)
@@ -97,6 +105,9 @@ onMounted(loadRankData)
 
 <style scoped>
 .major-homework-page {
+  --pick-size: 42px;
+  --pick-gap: 4px;
+  --choices-width: calc(var(--pick-size) * 10 + var(--pick-gap) * 9);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -139,15 +150,15 @@ onMounted(loadRankData)
 }
 
 .homework-table {
-  width: 100%;
-  min-width: 860px;
+  width: max-content;
+  min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
 
 .homework-table th,
 .homework-table td {
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-bottom: 1px solid #eef2f7;
   text-align: left;
   vertical-align: middle;
@@ -176,7 +187,11 @@ onMounted(loadRankData)
 }
 
 .rate-col {
-  width: 96px;
+  width: 88px;
+}
+
+.choices-col {
+  width: var(--choices-width);
 }
 
 .avatar-cell,
@@ -200,30 +215,48 @@ onMounted(loadRankData)
   font-weight: 700;
 }
 
-.pick-cell {
-  min-width: 176px;
+.choices-cell {
+  width: var(--choices-width);
+  min-width: var(--choices-width);
 }
 
-.pick-list {
+.choice-header-grid,
+.choices-grid {
   display: grid;
-  gap: 6px;
+  grid-template-columns: repeat(10, var(--pick-size));
+  gap: var(--pick-gap);
+  width: var(--choices-width);
 }
 
-.pick-list-3-0,
-.pick-list-0-3 {
-  grid-template-columns: repeat(2, 44px);
+.choice-header-grid {
+  align-items: end;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1;
 }
 
-.pick-list-3-1-3-2 {
-  grid-template-columns: repeat(6, 44px);
+.choice-header-grid span {
+  text-align: center;
+}
+
+.label-30 {
+  grid-column: 1 / span 2;
+}
+
+.label-advance {
+  grid-column: 3 / span 6;
+}
+
+.label-03 {
+  grid-column: 9 / span 2;
 }
 
 .team-pick {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: var(--pick-size);
+  height: var(--pick-size);
   padding: 4px;
   border: 2px solid;
   border-radius: 8px;
@@ -231,8 +264,8 @@ onMounted(loadRankData)
 }
 
 .team-pick img {
-  max-width: 32px;
-  max-height: 32px;
+  max-width: 31px;
+  max-height: 31px;
   object-fit: contain;
 }
 
@@ -265,7 +298,7 @@ onMounted(loadRankData)
   }
 
   .homework-table {
-    min-width: 760px;
+    min-width: 620px;
   }
 
   .homework-table th,
@@ -273,8 +306,14 @@ onMounted(loadRankData)
     padding: 8px;
   }
 
-  .pick-list-3-1-3-2 {
-    grid-template-columns: repeat(3, 44px);
+  .major-homework-page {
+    --pick-size: 36px;
+    --pick-gap: 3px;
+  }
+
+  .team-pick img {
+    max-width: 27px;
+    max-height: 27px;
   }
 }
 </style>
