@@ -314,6 +314,9 @@ onMounted(loadRankData)
   max-width: 31px;
   max-height: 31px;
   object-fit: contain;
+  filter:
+    drop-shadow(0 0 1px rgba(15, 23, 42, 0.8))
+    drop-shadow(0 1px 1px rgba(15, 23, 42, 0.45));
 }
 
 .team-pick span {
