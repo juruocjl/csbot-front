@@ -54,6 +54,8 @@ export type RankResponse = schemas.RankResponse
 export type MajorHomeworkPick = schemas.MajorHomeworkPick
 export type MajorHomeworkRankItem = schemas.MajorHomeworkRankItem
 export type MajorHomeworkRankResponse = schemas.MajorHomeworkRankResponse
+export type MajorHomeworkPersonalRow = schemas.MajorHomeworkPersonalRow
+export type MajorHomeworkPersonalResponse = schemas.MajorHomeworkPersonalResponse
 
 // 状态相关
 export type StatusResponse = schemas.StatusResponse
@@ -193,6 +195,10 @@ export const majorHomeworkAPI = {
   getRank: async (): Promise<MajorHomeworkRankResponse> => {
     const response = await apiClient.post('/api/major/homework/rank')
     return schemas.MajorHomeworkRankResponseSchema.parse(response)
+  },
+  getPersonal: async (): Promise<MajorHomeworkPersonalResponse> => {
+    const response = await apiClient.post('/api/major/homework/personal')
+    return schemas.MajorHomeworkPersonalResponseSchema.parse(response)
   }
 }
 

@@ -332,6 +332,25 @@ export const MajorHomeworkRankResponseSchema = z.object({
   players: z.array(MajorHomeworkRankItemSchema)
 })
 
+export const MajorHomeworkPersonalRowSchema = z.object({
+  matchCount: z.number(),
+  createdAt: z.number(),
+  event: z.string(),
+  homeworkText: z.string(),
+  probability: z.number().nullable(),
+  probabilityChange: z.number().nullable(),
+  expected: z.number().nullable(),
+  picks: z.record(z.string(), z.array(MajorHomeworkPickSchema))
+})
+
+export const MajorHomeworkPersonalResponseSchema = z.object({
+  stage: z.string(),
+  uid: z.string(),
+  avatar: z.string(),
+  categories: z.array(z.string()),
+  rows: z.array(MajorHomeworkPersonalRowSchema)
+})
+
 export const StatusResponseSchema = z.object({
   cpuUsage: z.number(),
   memoryTotal: z.number(),
@@ -430,6 +449,8 @@ export type RankResponse = z.infer<typeof RankResponseSchema>
 export type MajorHomeworkPick = z.infer<typeof MajorHomeworkPickSchema>
 export type MajorHomeworkRankItem = z.infer<typeof MajorHomeworkRankItemSchema>
 export type MajorHomeworkRankResponse = z.infer<typeof MajorHomeworkRankResponseSchema>
+export type MajorHomeworkPersonalRow = z.infer<typeof MajorHomeworkPersonalRowSchema>
+export type MajorHomeworkPersonalResponse = z.infer<typeof MajorHomeworkPersonalResponseSchema>
 export type StatusResponse = z.infer<typeof StatusResponseSchema>
 export type SteamStatusItem = z.infer<typeof SteamStatusItemSchema>
 export type SteamStatusResponse = z.infer<typeof SteamStatusResponseSchema>

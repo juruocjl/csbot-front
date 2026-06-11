@@ -5,6 +5,10 @@
         <h2>Major 作业排名</h2>
         <p>{{ rankData?.stage || 'loading' }}</p>
       </div>
+      <el-button @click="router.push('/major-homework/me')">
+        <UserRound :size="16" />
+        个人作业
+      </el-button>
       <el-button :loading="loading" @click="loadRankData">
         <RefreshCw :size="16" />
         刷新
@@ -77,10 +81,12 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { RefreshCw } from 'lucide-vue-next'
+import { RefreshCw, UserRound } from 'lucide-vue-next'
 import { majorHomeworkAPI, type MajorHomeworkPick, type MajorHomeworkRankItem, type MajorHomeworkRankResponse } from '../api'
 
+const router = useRouter()
 const rankData = ref<MajorHomeworkRankResponse | null>(null)
 const loading = ref<boolean>(false)
 const error = ref<string>('')
