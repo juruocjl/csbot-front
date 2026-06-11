@@ -2,7 +2,16 @@
   <div class="major-homework-personal-page">
     <div class="page-toolbar">
       <div class="title-block">
-        <h2>个人作业</h2>
+        <div class="title-heading">
+          <img
+            v-if="personalData?.avatar"
+            class="detail-avatar"
+            :src="personalData.avatar"
+            alt=""
+            loading="eager"
+          >
+          <h2>{{ pageHeading }}</h2>
+        </div>
         <p>{{ personalData?.stage || 'loading' }}</p>
       </div>
       <div class="toolbar-actions">
@@ -52,8 +61,22 @@
               </div>
             </td>
             <td class="event-cell">
-              <span class="event-main">{{ row.event }}</span>
-              <span class="event-sub">第 {{ row.matchCount }} 场后</span>
+              <div v-if="isMatchEvent(row)" class="match-event" :title="row.event">
+                <span class="event-team event-winner">
+                  <img v-if="row.eventWinnerLogo" :src="row.eventWinnerLogo" :alt="row.eventWinner || ''" loading="lazy">
+                  <span v-else>{{ shortTeamName(row.eventWinner || '') }}</span>
+                </span>
+                <span class="event-score">
+                  <span class="score-winner">{{ splitScore(row.eventScore).winner }}</span>
+                  <span class="score-separator">:</span>
+                  <span class="score-loser">{{ splitScore(row.eventScore).loser }}</span>
+                </span>
+                <span class="event-team">
+                  <img v-if="row.eventLoserLogo" :src="row.eventLoserLogo" :alt="row.eventLoser || ''" loading="lazy">
+                  <span v-else>{{ shortTeamName(row.eventLoser || '') }}</span>
+                </span>
+              </div>
+              <span v-else class="event-main">{{ row.event }}</span>
             </td>
             <td class="rate-cell">{{ formatPercent(row.probability) }}</td>
             <td class="delta-cell" :class="deltaClass(row.probabilityChange)">
@@ -69,8 +92,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ListOrdered, RefreshCw } from 'lucide-vue-next'
 import {
@@ -81,15 +104,25 @@ import {
 } from '../api'
 
 const router = useRouter()
+const route = useRoute()
 const personalData = ref<MajorHomeworkPersonalResponse | null>(null)
 const loading = ref<boolean>(false)
 const error = ref<string>('')
+
+const targetUid = computed<string>(() => {
+  const rawUid = route.params.uid
+  return Array.isArray(rawUid) ? rawUid[0] || '' : rawUid || ''
+})
+
+const pageHeading = computed<string>(() => {
+  return targetUid.value ? '作业详情' : '个人作业'
+})
 
 const loadPersonalData = async (): Promise<void> => {
   loading.value = true
   error.value = ''
   try {
-    personalData.value = await majorHomeworkAPI.getPersonal()
+    personalData.value = await majorHomeworkAPI.getPersonal(targetUid.value || undefined)
   } catch (err: any) {
     error.value = err.response?.data?.detail || '个人作业加载失败'
     ElMessage.error(error.value)
@@ -128,6 +161,18 @@ const shortTeamName = (team: string): string => {
   return team.slice(0, 3).toUpperCase()
 }
 
+const isMatchEvent = (row: MajorHomeworkPersonalRow): boolean => {
+  return Boolean(row.eventWinner && row.eventLoser && row.eventScore)
+}
+
+const splitScore = (score?: string | null): { winner: string; loser: string } => {
+  const parts = String(score || '').split(':')
+  return {
+    winner: parts[0] || '',
+    loser: parts[1] || '',
+  }
+}
+
 const flatPicks = (row: MajorHomeworkPersonalRow): MajorHomeworkPick[] => {
   return [
     ...(row.picks['3-0'] || []),
@@ -137,6 +182,10 @@ const flatPicks = (row: MajorHomeworkPersonalRow): MajorHomeworkPick[] => {
 }
 
 onMounted(loadPersonalData)
+
+watch(targetUid, () => {
+  loadPersonalData()
+})
 </script>
 
 <style scoped>
@@ -157,12 +206,27 @@ onMounted(loadPersonalData)
   gap: 16px;
 }
 
+.title-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .title-block h2 {
   margin: 0;
   color: #1f2937;
   font-size: 24px;
   font-weight: 700;
   letter-spacing: 0;
+}
+
+.detail-avatar {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f3f4f6;
 }
 
 .title-block p {
@@ -316,12 +380,8 @@ onMounted(loadPersonalData)
   color: #111827;
 }
 
-.event-main,
-.event-sub {
-  display: block;
-}
-
 .event-main {
+  display: block;
   max-width: 210px;
   overflow: hidden;
   font-size: 14px;
@@ -330,10 +390,60 @@ onMounted(loadPersonalData)
   white-space: nowrap;
 }
 
-.event-sub {
-  margin-top: 3px;
-  color: #64748b;
-  font-size: 12px;
+.match-event {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 132px;
+}
+
+.event-team {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 4px;
+  border: 1px solid #dbe3ef;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.event-winner {
+  border-color: #dbe3ef;
+  background: #f8fafc;
+}
+
+.event-team img {
+  max-width: 26px;
+  max-height: 26px;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 1px rgba(15, 23, 42, 0.8))
+    drop-shadow(0 1px 1px rgba(15, 23, 42, 0.45));
+}
+
+.event-team span {
+  color: #1f2937;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.event-score {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.score-winner {
+  color: #16a34a;
+}
+
+.score-separator,
+.score-loser {
+  color: #111827;
 }
 
 .rate-cell,

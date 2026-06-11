@@ -196,8 +196,8 @@ export const majorHomeworkAPI = {
     const response = await apiClient.post('/api/major/homework/rank')
     return schemas.MajorHomeworkRankResponseSchema.parse(response)
   },
-  getPersonal: async (): Promise<MajorHomeworkPersonalResponse> => {
-    const response = await apiClient.post('/api/major/homework/personal')
+  getPersonal: async (uid?: string): Promise<MajorHomeworkPersonalResponse> => {
+    const response = await apiClient.post('/api/major/homework/personal', uid ? { uid } : {})
     return schemas.MajorHomeworkPersonalResponseSchema.parse(response)
   }
 }

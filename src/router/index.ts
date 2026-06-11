@@ -90,6 +90,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/major-homework/user/:uid',
+    name: 'MajorHomeworkUser',
+    component: MajorHomeworkPersonal,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/ai-chat',
     name: 'AIChat',
     component: AIChat,

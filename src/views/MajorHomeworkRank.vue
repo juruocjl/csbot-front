@@ -53,7 +53,9 @@
           </tr>
           <tr v-for="player in rankData.players" :key="player.uid">
             <td class="avatar-cell">
-              <img class="avatar" :src="player.avatar" alt="" loading="lazy">
+              <button class="avatar-button" :title="`查看 ${player.uid} 的作业`" @click="openPersonal(player.uid)">
+                <img class="avatar" :src="player.avatar" alt="" loading="lazy">
+              </button>
             </td>
             <td class="rate-cell">{{ formatPercent(player.probability) }}</td>
             <td class="choices-cell">
@@ -114,6 +116,10 @@ const formatPercent = (value: number | null): string => {
 
 const shortTeamName = (team: string): string => {
   return team.slice(0, 3).toUpperCase()
+}
+
+const openPersonal = (uid: string): void => {
+  router.push(`/major-homework/user/${encodeURIComponent(uid)}`)
 }
 
 const flatPicks = (player: MajorHomeworkRankItem): MajorHomeworkPick[] => {
@@ -242,6 +248,20 @@ onMounted(loadRankData)
   border-radius: 50%;
   object-fit: cover;
   background: #f3f4f6;
+}
+
+.avatar-button {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.avatar-button:hover .avatar {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
 }
 
 .rate-cell {
