@@ -110,8 +110,9 @@ const formatPercent = (value: number | null): string => {
   if (value === null || !Number.isFinite(value)) {
     return '-'
   }
-  const normalized = Math.abs(value) <= 1 ? value * 100 : value
-  return `${normalized.toFixed(1)}%`
+  const normalized = Math.abs(value) <= 1.000001 ? value * 100 : value
+  const bounded = Math.max(0, Math.min(100, normalized))
+  return `${bounded.toFixed(1)}%`
 }
 
 const shortTeamName = (team: string): string => {
