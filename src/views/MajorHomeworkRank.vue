@@ -1,11 +1,11 @@
 <template>
-  <div class="major-homework-page">
+  <div class="major-homework-page" :class="{ 'is-playoffs': isPlayoffs }">
     <div class="page-toolbar">
       <div>
         <h2>Major 作业排名</h2>
         <p>{{ rankData?.stage || 'loading' }}</p>
       </div>
-      <el-button @click="router.push('/major-homework/me')">
+      <el-button v-if="!isPlayoffs" @click="router.push('/major-homework/me')">
         <UserRound :size="16" />
         个人作业
       </el-button>
@@ -22,12 +22,16 @@
         <thead>
           <tr>
             <th class="avatar-col">头像</th>
-            <th class="rate-col">正确率</th>
+            <th class="rate-col">{{ isPlayoffs ? '轮次结果' : '正确率' }}</th>
             <th class="choices-col">
               <div class="choice-header-grid">
-                <span class="label-30">3-0</span>
-                <span class="label-advance">晋级</span>
-                <span class="label-03">0-3</span>
+                <span
+                  v-for="category in rankData.categories"
+                  :key="category"
+                  :style="{ gridColumn: `span ${categorySlot(category)}` }"
+                >
+                  {{ categoryLabel(category) }}
+                </span>
               </div>
             </th>
           </tr>
@@ -57,7 +61,21 @@
                 <img class="avatar" :src="player.avatar" alt="" loading="lazy">
               </button>
             </td>
-            <td class="rate-cell">{{ formatPercent(player.probability) }}</td>
+            <td class="rate-cell">
+              <div v-if="isPlayoffs" class="round-status-list">
+                <span
+                  v-for="round in playoffRoundStatuses(player)"
+                  :key="`${player.uid}-${round.category}`"
+                  class="round-status"
+                  :class="`round-status-${round.status}`"
+                  :title="`${round.category} ${round.text}`"
+                >
+                  <span>{{ round.shortCategory }}</span>
+                  <strong>{{ round.text }}</strong>
+                </span>
+              </div>
+              <template v-else>{{ formatRankValue(player) }}</template>
+            </td>
             <td class="choices-cell">
               <div class="choices-grid">
                 <button
@@ -82,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { RefreshCw, UserRound } from 'lucide-vue-next'
@@ -92,6 +110,8 @@ const router = useRouter()
 const rankData = ref<MajorHomeworkRankResponse | null>(null)
 const loading = ref<boolean>(false)
 const error = ref<string>('')
+const isPlayoffs = computed<boolean>(() => rankData.value?.stageType === 'playoffs')
+type PickStatus = 'correct' | 'wrong' | 'pending'
 
 const loadRankData = async (): Promise<void> => {
   loading.value = true
@@ -120,26 +140,96 @@ const shortTeamName = (team: string): string => {
 }
 
 const openPersonal = (uid: string): void => {
+  if (isPlayoffs.value) {
+    return
+  }
   router.push(`/major-homework/user/${encodeURIComponent(uid)}`)
 }
 
+const categorySlot = (category: string): number => {
+  if (category === '3-0' || category === '0-3') {
+    return 2
+  }
+  if (category === '3-1/3-2') {
+    return 6
+  }
+  if (category === '4强') {
+    return 4
+  }
+  if (category === '2强') {
+    return 2
+  }
+  if (category === '冠军') {
+    return 1
+  }
+  return Math.max(1, rankData.value?.resultPicks[category]?.length || 1)
+}
+
+const categoryLabel = (category: string): string => {
+  return category === '3-1/3-2' ? '晋级' : category
+}
+
+const categoryOrder = (): string[] => {
+  return rankData.value?.categories || ['3-0', '3-1/3-2', '0-3']
+}
+
 const flatPicks = (player: MajorHomeworkRankItem): MajorHomeworkPick[] => {
-  return [
-    ...(player.picks['3-0'] || []),
-    ...(player.picks['3-1/3-2'] || []),
-    ...(player.picks['0-3'] || []),
-  ]
+  return categoryOrder().flatMap(category => player.picks[category] || [])
 }
 
 const flatResultPicks = (): MajorHomeworkPick[] => {
   if (!rankData.value) {
     return []
   }
-  return [
-    ...(rankData.value.resultPicks['3-0'] || []),
-    ...(rankData.value.resultPicks['3-1/3-2'] || []),
-    ...(rankData.value.resultPicks['0-3'] || []),
-  ]
+  return categoryOrder().flatMap(category => rankData.value?.resultPicks[category] || [])
+}
+
+const roundStatusText: Record<PickStatus, string> = {
+  correct: '对',
+  wrong: '错',
+  pending: '待'
+}
+
+const scoreLabelToStatus = (text: string | undefined): PickStatus | null => {
+  if (!text) {
+    return null
+  }
+  if (text.startsWith('对')) {
+    return 'correct'
+  }
+  if (text.startsWith('错')) {
+    return 'wrong'
+  }
+  if (text.startsWith('待')) {
+    return 'pending'
+  }
+  return null
+}
+
+const playoffRoundStatuses = (player: MajorHomeworkRankItem): Array<{
+  category: string
+  shortCategory: string
+  status: PickStatus
+  text: string
+}> => {
+  const labelParts = (player.scoreLabel || '').split('/').map(part => part.trim())
+  return categoryOrder().map((category, index) => {
+    const labelStatus = scoreLabelToStatus(labelParts[index])
+    const status = labelStatus || (player.picks[category]?.[0]?.status || 'pending') as PickStatus
+    return {
+      category,
+      shortCategory: category === '冠军' ? '冠' : category,
+      status,
+      text: roundStatusText[status]
+    }
+  })
+}
+
+const formatRankValue = (player: MajorHomeworkRankItem): string => {
+  if (isPlayoffs.value) {
+    return player.scoreLabel || '-'
+  }
+  return formatPercent(player.probability)
 }
 
 onMounted(loadRankData)
@@ -149,11 +239,17 @@ onMounted(loadRankData)
 .major-homework-page {
   --pick-size: 42px;
   --pick-gap: 4px;
+  --pick-count: 10;
   --choices-width: calc(var(--pick-size) * 10 + var(--pick-gap) * 9);
   display: flex;
   flex-direction: column;
   gap: 16px;
   min-height: 100%;
+}
+
+.major-homework-page.is-playoffs {
+  --pick-count: 7;
+  --choices-width: calc(var(--pick-size) * 7 + var(--pick-gap) * 6);
 }
 
 .page-toolbar {
@@ -232,6 +328,10 @@ onMounted(loadRankData)
   width: 88px;
 }
 
+.major-homework-page.is-playoffs .rate-col {
+  width: 132px;
+}
+
 .choices-col {
   width: var(--choices-width);
 }
@@ -271,6 +371,54 @@ onMounted(loadRankData)
   font-weight: 700;
 }
 
+.round-status-list {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.round-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 38px;
+  height: 24px;
+  border: 1px solid;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.round-status span {
+  color: #475569;
+  font-size: 10px;
+}
+
+.round-status strong {
+  font-size: 12px;
+}
+
+.round-status-correct {
+  border-color: #16a34a;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.round-status-wrong {
+  border-color: #dc2626;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.round-status-pending {
+  border-color: #2563eb;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
 .result-row {
   background: #fbfdff;
 }
@@ -297,7 +445,7 @@ onMounted(loadRankData)
 .choice-header-grid,
 .choices-grid {
   display: grid;
-  grid-template-columns: repeat(10, var(--pick-size));
+  grid-template-columns: repeat(var(--pick-count), var(--pick-size));
   gap: var(--pick-gap);
   width: var(--choices-width);
 }
@@ -311,18 +459,6 @@ onMounted(loadRankData)
 
 .choice-header-grid span {
   text-align: center;
-}
-
-.label-30 {
-  grid-column: 1 / span 2;
-}
-
-.label-advance {
-  grid-column: 3 / span 6;
-}
-
-.label-03 {
-  grid-column: 9 / span 2;
 }
 
 .team-pick {

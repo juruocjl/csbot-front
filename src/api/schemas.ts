@@ -321,11 +321,14 @@ export const MajorHomeworkRankItemSchema = z.object({
   avatar: z.string(),
   probability: z.number().nullable(),
   expected: z.number().nullable(),
+  score: z.number().nullable().optional(),
+  scoreLabel: z.string().nullable().optional(),
   picks: z.record(z.string(), z.array(MajorHomeworkPickSchema))
 })
 
 export const MajorHomeworkRankResponseSchema = z.object({
   stage: z.string(),
+  stageType: z.enum(['swiss', 'playoffs']).default('swiss'),
   categories: z.array(z.string()),
   teams: z.array(z.string()),
   resultPicks: z.record(z.string(), z.array(MajorHomeworkPickSchema)),
