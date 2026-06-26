@@ -647,11 +647,11 @@ onMounted(() => {
 
 .predicted-rank-mark {
 	position: absolute;
-	top: -0.15rem;
-	right: -0.45rem;
-	color: #f59e0b;
-	font-size: 1.05rem;
-	font-weight: 800;
+	top: -0.45rem;
+	right: -0.65rem;
+	color: #111827;
+	font-size: 1.65rem;
+	font-weight: 900;
 	line-height: 1;
 }
 
