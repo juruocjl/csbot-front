@@ -130,12 +130,13 @@
           </el-table-column>
           <el-table-column label="段位" align="center">
             <template #default="{ row }">
-              <div style="transform: scale(0.75); transform-origin: center; display: inline-block;">
+              <div class="rank-display-cell">
                 <RankBadge 
-                  :pvp-score="row.pvpScore" 
+                  :pvp-score="rankDisplayScore(row)" 
                   :pvp-stars="row.pvpStars" 
                   :season="row.season" 
                 />
+                <span v-if="row.isPredictedPvpScore" class="predicted-rank-mark">*</span>
               </div>
             </template>
           </el-table-column>
@@ -165,7 +166,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { authAPI, commonAPI, configAPI, type MatchHistoryResponse, type PlayerBase} from '../api'
+import { authAPI, commonAPI, configAPI, type HistoryMatch, type MatchHistoryResponse, type PlayerBase} from '../api'
 import { watchDebounced } from '@vueuse/core'
 import { RefreshCw } from 'lucide-vue-next'
 import RankBadge from '../components/RankBadge.vue'
@@ -259,6 +260,10 @@ const handleImageError = (e: Event): void => {
   const img = e.target as HTMLImageElement
   img.src =
     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect fill="%23e5e7eb" width="64" height="64"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="22"%3E?%3C/text%3E%3C/svg%3E'
+}
+
+const rankDisplayScore = (row: HistoryMatch): number => {
+  return row.displayPvpScore ?? row.pvpScore
 }
 
 const switchToGPHistory = (): void => {
@@ -620,6 +625,25 @@ watch(() => route.query, async (newQuery) => {
 .value-negative {
   color: #dc2626;
   font-weight: 600;
+}
+
+.rank-display-cell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.predicted-rank-mark {
+  position: absolute;
+  top: -0.15rem;
+  right: -0.45rem;
+  color: #f59e0b;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .score-increase {

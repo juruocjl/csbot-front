@@ -116,12 +116,13 @@
 						</el-table-column>
 						<el-table-column label="段位" min-width="110" align="center">
 							<template #default="{ row }">
-              					<div style="transform: scale(0.75); transform-origin: center; display: inline-block;">
+              					<div class="rank-display-cell">
 									<RankBadge 
-									:pvp-score="row.pvpScore" 
+									:pvp-score="rankDisplayScore(row)" 
 									:pvp-stars="row.pvpStars" 
 									:season="matchData?.season" 
 									/>
+									<span v-if="row.isPredictedPvpScore" class="predicted-rank-mark">*</span>
 								</div>
 							</template>
 						</el-table-column>
@@ -170,6 +171,10 @@ const allPlayersWithTeam = computed<Array<Player & { teamName: string }>>(() => 
 		...team2Players.value.map(p => ({ ...p, teamName: '队伍 2' }))
 	]
 })
+
+const rankDisplayScore = (row: Player): number => {
+	return row.displayPvpScore ?? row.pvpScore
+}
 
 const team1StyleClass = computed<string>(() => {
 	if (matchData.value?.userTeam !== null && matchData.value?.userTeam !== undefined) {
@@ -629,6 +634,25 @@ onMounted(() => {
 
 .rank-cell {
 	text-align: center;
+}
+
+.rank-display-cell {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	transform: scale(0.75);
+	transform-origin: center;
+}
+
+.predicted-rank-mark {
+	position: absolute;
+	top: -0.15rem;
+	right: -0.45rem;
+	color: #f59e0b;
+	font-size: 1.05rem;
+	font-weight: 800;
+	line-height: 1;
 }
 
 .value-positive {

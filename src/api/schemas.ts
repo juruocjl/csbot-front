@@ -42,6 +42,8 @@ export const PlayerSchema = z.object({
   assists: z.number(),
   legacyScore: z.union([z.number(), z.null()]),
   pvpScore: z.number(),
+  displayPvpScore: z.number().nullable().optional(),
+  isPredictedPvpScore: z.boolean().optional(),
   pvpScoreChange: z.number(),
   pvpStars: z.number()
 })
@@ -75,7 +77,10 @@ export const HistoryMatchSchema = z.object({
   rating: z.number(),
   we: z.number(),
   pvpScore: z.number(),
+  displayPvpScore: z.number().nullable().optional(),
+  isPredictedPvpScore: z.boolean().optional(),
   pvpScoreChange: z.number(),
+  pvpStars: z.number(),
   legacyDiff: z.number().nullable()
 })
 
