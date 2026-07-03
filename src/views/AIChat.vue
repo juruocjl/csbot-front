@@ -2,12 +2,15 @@
   <div class="chat-container">
     <div class="query-section">
       <div class="query-form">
-        <div class="form-group">
-          <label>聊天编号 (Chat ID)</label>
-          <div class="input-with-button">
-            <input v-model="inputChatId" class="form-input" placeholder="输入聊天编号" @keyup.enter="handleSearch">
-            <el-button type="primary" @click="handleSearch" class="search-btn">查询</el-button>
-          </div>
+        <label>Chat ID</label>
+        <div class="input-with-button">
+          <input
+            v-model="inputChatId"
+            class="form-input"
+            placeholder="输入 Chat ID"
+            @keyup.enter="handleSearch"
+          >
+          <el-button type="primary" @click="handleSearch">查询</el-button>
         </div>
       </div>
     </div>
@@ -19,14 +22,39 @@
       </div>
 
       <div v-else-if="error" class="error-container">
-        <div class="error-icon">⚠️</div>
         <h3>{{ error }}</h3>
-        <el-button @click="fetchChatHistory" class="retry-btn">重试</el-button>
+        <el-button @click="fetchChatHistory">重试</el-button>
       </div>
 
       <div v-else-if="!chatId" class="empty-container">
-        <MessageSquare :size="48" style="opacity: 0.3; margin-bottom: 1rem;" />
-        <p>请输入聊天编号进行查看</p>
+        <div class="prompt-panel">
+          <div class="prompt-panel-header">
+            <MessageSquare :size="28" />
+            <div>
+              <h3>新建 AI 对话</h3>
+              <p>输入问题后会创建新的 Chat ID，并跳转到对话记录页。</p>
+            </div>
+          </div>
+          <el-input
+            v-model="promptText"
+            type="textarea"
+            :rows="5"
+            resize="vertical"
+            placeholder="输入 prompt"
+            @keydown.ctrl.enter.prevent="handleAsk"
+            @keydown.meta.enter.prevent="handleAsk"
+          />
+          <div class="prompt-actions">
+            <el-button
+              type="primary"
+              :loading="asking"
+              :disabled="!promptText.trim()"
+              @click="handleAsk"
+            >
+              发送
+            </el-button>
+          </div>
+        </div>
       </div>
 
       <div v-else class="message-list">
@@ -39,37 +67,33 @@
               </div>
             </div>
           </template>
+
           <template v-else-if="msg.role === 'tool'">
             <div class="tool-result-message">
               <div class="tool-result-header">
                 <Wrench :size="14" />
                 <span>工具执行结果</span>
               </div>
-              <div class="tool-result-content">
-                {{ msg.content }}
-              </div>
+              <div class="tool-result-content">{{ msg.content }}</div>
             </div>
           </template>
+
           <template v-else>
             <div class="message-meta">
               <span class="role-badge" :class="msg.role">{{ formatRole(msg.role) }}</span>
               <span class="timestamp">{{ formatTimestamp(msg.timestamp) }}</span>
             </div>
-            
+
             <div class="message-bubble">
-              <!-- 思考过程 -->
               <div v-if="msg.reasons" class="thinking-block">
                 <div class="thinking-header" @click="msg.showReasons = !msg.showReasons">
                   <BrainCircuit :size="16" />
                   <span>思考过程</span>
                   <ChevronDown :size="14" :class="{ 'is-active': msg.showReasons }" class="collapse-icon" />
                 </div>
-                <div v-if="msg.showReasons" class="thinking-content">
-                  {{ msg.reasons }}
-                </div>
+                <div v-if="msg.showReasons" class="thinking-content">{{ msg.reasons }}</div>
               </div>
 
-              <!-- 工具调用 -->
               <div v-if="msg.parsedTools && msg.parsedTools.length > 0" class="tools-block">
                 <div v-for="(tool, tIdx) in msg.parsedTools" :key="tIdx" class="tool-call">
                   <div class="tools-header">
@@ -88,17 +112,12 @@
                 </div>
               </div>
 
-              <!-- 主要内容 -->
-              <div class="content" v-if="msg.content">
-                {{ msg.content }}
-              </div>
-              <div class="content empty" v-else-if="!msg.tools">
-                <span class="muted">（无内容）</span>
-              </div>
+              <div v-if="msg.content" class="content">{{ msg.content }}</div>
+              <div v-else-if="!msg.tools" class="content empty">（无内容）</div>
             </div>
           </template>
         </div>
-        
+
         <div v-if="loading && records.length > 0" class="loading-more">
           <div class="small-spinner"></div>
           <span>正在加载后续消息 ({{ records.length }}/{{ recordIds.length }})...</span>
@@ -111,6 +130,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { aiAPI } from '../api'
 import type { AiRecordResponse } from '../api'
 import { MessageSquare, BrainCircuit, Wrench, ChevronDown } from 'lucide-vue-next'
@@ -124,11 +144,13 @@ const route = useRoute()
 const router = useRouter()
 const chatId = ref(route.query.chatId as string || '')
 const inputChatId = ref(chatId.value)
+const promptText = ref('')
+const asking = ref(false)
 const recordIds = ref<number[]>([])
 const records = ref<DisplayRecord[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
-const pollingTimer = ref<any>(null)
+const pollingTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const stopPolling = () => {
   if (pollingTimer.value) {
@@ -141,26 +163,37 @@ const parseTools = (toolsStr: string | null) => {
   if (!toolsStr) return []
   try {
     const tools = JSON.parse(toolsStr)
-    if (Array.isArray(tools)) {
-      return tools.map(tool => {
-        let args = tool.arguments
-        if (typeof args === 'string') {
-          try {
-            args = JSON.parse(args)
-          } catch (e) {
-            // 解析失败则保持原样
-          }
+    if (!Array.isArray(tools)) return []
+    return tools.map(tool => {
+      let args = tool.arguments
+      if (typeof args === 'string') {
+        try {
+          args = JSON.parse(args)
+        } catch {
+          // keep original string
         }
-        return {
-          name: tool.name || 'unknown_tool',
-          arguments: args
-        }
-      })
-    }
+      }
+      return {
+        name: tool.name || 'unknown_tool',
+        arguments: args
+      }
+    })
   } catch (e) {
     console.warn('Failed to parse tools JSON:', e)
+    return []
   }
-  return []
+}
+
+const navigateToChat = (value: string) => {
+  const target = value.trim()
+  if (!target) return
+  router.push({
+    path: '/ai-chat',
+    query: {
+      ...route.query,
+      chatId: target
+    }
+  })
 }
 
 const handleSearch = () => {
@@ -168,7 +201,22 @@ const handleSearch = () => {
   if (inputChatId.value === chatId.value) {
     fetchChatHistory()
   } else {
-    router.push({ query: { chatId: inputChatId.value } })
+    navigateToChat(inputChatId.value)
+  }
+}
+
+const handleAsk = async () => {
+  const prompt = promptText.value.trim()
+  if (!prompt || asking.value) return
+  asking.value = true
+  try {
+    const result = await aiAPI.ask(prompt)
+    promptText.value = ''
+    navigateToChat(result.chatId)
+  } catch (err: any) {
+    ElMessage.error(err.response?.data?.detail || err.message || '创建 AI 对话失败')
+  } finally {
+    asking.value = false
   }
 }
 
@@ -179,7 +227,7 @@ const fetchChatHistory = async (isIncremental = false) => {
     stopPolling()
     return
   }
-  
+
   if (!isIncremental) {
     loading.value = true
     error.value = null
@@ -187,18 +235,15 @@ const fetchChatHistory = async (isIncremental = false) => {
     recordIds.value = []
     stopPolling()
   }
-  
+
   try {
     const idsResult = await aiAPI.getRecordIds(chatId.value)
     const newIds = idsResult.recordIds.filter(id => !recordIds.value.includes(id))
-    
+
     if (newIds.length > 0) {
       const fetchedNewRecords: DisplayRecord[] = []
-      // 逐个获取内容以实现渐进式加载
       for (const id of newIds) {
-        // 如果在加载过程中 chatId 已经改变，停止加载
         if (route.query.chatId !== chatId.value) break
-        
         try {
           const record = await aiAPI.getRecord(id)
           fetchedNewRecords.push({
@@ -206,23 +251,21 @@ const fetchChatHistory = async (isIncremental = false) => {
             showReasons: false,
             parsedTools: parseTools(record.tools)
           })
-          // 如果是第一次加载，实时更新 records 列表
           if (!isIncremental) {
             records.value = [...records.value, ...fetchedNewRecords]
-            fetchedNewRecords.length = 0 // 清空以便下一轮
+            fetchedNewRecords.length = 0
           }
         } catch (e) {
           console.error(`Failed to fetch record ${id}:`, e)
         }
       }
-      
+
       if (fetchedNewRecords.length > 0) {
         records.value = [...records.value, ...fetchedNewRecords]
       }
       recordIds.value = idsResult.recordIds
     }
-    
-    // 如果还没结束生成，5秒后再次检查
+
     if (!idsResult.isEnd) {
       pollingTimer.value = setTimeout(() => fetchChatHistory(true), 5000)
     } else {
@@ -262,10 +305,10 @@ const formatTimestamp = (ts: number) => {
 
 const formatRole = (role: string) => {
   const roles: Record<string, string> = {
-    'user': '用户',
-    'assistant': 'AI 助手',
-    'system': '系统',
-    'tool': '工具'
+    user: '用户',
+    assistant: 'AI 助手',
+    system: '系统',
+    tool: '工具'
   }
   return roles[role] || role
 }
@@ -275,28 +318,23 @@ const formatRole = (role: string) => {
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 100px); /* 减去 header 高度 */
+  height: calc(100vh - 100px);
 }
 
 .query-section {
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   background: white;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .query-form {
   display: flex;
-  max-width: 500px;
-}
-
-.form-group {
-  flex: 1;
-  display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  max-width: 520px;
 }
 
-.form-group label {
+.query-form label {
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
@@ -329,6 +367,59 @@ const formatRole = (role: string) => {
   background-color: #f9fafb;
 }
 
+.empty-container,
+.loading-container,
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.error-container {
+  flex-direction: column;
+  text-align: center;
+}
+
+.error-container h3 {
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.prompt-panel {
+  width: min(760px, 100%);
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.prompt-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-bottom: 1rem;
+  color: #374151;
+}
+
+.prompt-panel-header h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.prompt-panel-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.prompt-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
 .message-list {
   display: flex;
   flex-direction: column;
@@ -346,7 +437,8 @@ const formatRole = (role: string) => {
   align-items: flex-end;
 }
 
-.message-item.assistant {
+.message-item.assistant,
+.message-item.tool {
   align-items: flex-start;
 }
 
@@ -354,15 +446,9 @@ const formatRole = (role: string) => {
   align-items: center;
 }
 
-.message-item.tool {
-  align-items: flex-start;
-}
-
 .system-message {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
   width: 100%;
 }
 
@@ -384,21 +470,24 @@ const formatRole = (role: string) => {
 }
 
 .tool-result-message {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
   max-width: 90%;
   margin-bottom: 0.5rem;
 }
 
-.tool-result-header {
+.tool-result-header,
+.tools-header,
+.thinking-header,
+.message-meta {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
+}
+
+.tool-result-header {
   font-size: 0.75rem;
   color: #64748b;
   font-weight: 600;
-  margin-left: 0.5rem;
+  margin: 0 0 0.25rem 0.5rem;
 }
 
 .tool-result-content {
@@ -410,16 +499,13 @@ const formatRole = (role: string) => {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.8125rem;
   white-space: pre-wrap;
-  word-break: break-all;
+  word-break: break-word;
 }
 
 .message-meta {
   margin-bottom: 0.4rem;
   font-size: 0.8rem;
   color: #6b7280;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .role-badge {
@@ -441,7 +527,7 @@ const formatRole = (role: string) => {
 
 .message-bubble {
   padding: 1rem;
-  border-radius: 12px;
+  border-radius: 8px;
   max-width: 85%;
   line-height: 1.6;
   white-space: pre-wrap;
@@ -461,27 +547,24 @@ const formatRole = (role: string) => {
   color: #1f2937;
 }
 
-.thinking-block {
+.thinking-block,
+.tools-block {
   margin-bottom: 0.75rem;
-  border: 1px solid #e5e7eb;
   border-radius: 6px;
   overflow: hidden;
   font-size: 0.85rem;
 }
 
+.thinking-block {
+  border: 1px solid #e5e7eb;
+}
+
 .thinking-header {
   padding: 0.4rem 0.75rem;
   background-color: #f9fafb;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   cursor: pointer;
   user-select: none;
   color: #6b7280;
-}
-
-.thinking-header:hover {
-  background-color: #f3f4f6;
 }
 
 .collapse-icon {
@@ -502,14 +585,7 @@ const formatRole = (role: string) => {
 }
 
 .tools-block {
-  margin-bottom: 0.75rem;
   border: 1px solid #e0e7ff;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
   background-color: #e0e7ff;
 }
 
@@ -520,9 +596,6 @@ const formatRole = (role: string) => {
 .tools-header {
   padding: 0.4rem 0.75rem;
   background-color: #eef2ff;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   color: #4338ca;
   border-bottom: 1px solid #e0e7ff;
 }
@@ -534,7 +607,7 @@ const formatRole = (role: string) => {
 
 .tools-content {
   padding: 0.75rem;
-  word-break: break-all;
+  word-break: break-word;
 }
 
 .args-grid {
@@ -561,40 +634,26 @@ const formatRole = (role: string) => {
   font-style: italic;
 }
 
-.empty-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #9ca3af;
-}
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+.spinner,
+.small-spinner {
+  border-style: solid;
+  border-color: #f3f3f3;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #6366f1;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  border-width: 4px;
+  margin-right: 1rem;
 }
 
 .small-spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid #6366f1;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+  border-width: 2px;
 }
 
 .loading-more {
@@ -612,26 +671,11 @@ const formatRole = (role: string) => {
   100% { transform: rotate(360deg); }
 }
 
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  text-align: center;
-}
-
-.error-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.error-container h3 {
-  color: #ef4444;
-  margin-bottom: 1rem;
-}
-
 @media (max-width: 640px) {
+  .input-with-button {
+    flex-direction: column;
+  }
+
   .message-bubble {
     max-width: 95%;
   }

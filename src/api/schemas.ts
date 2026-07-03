@@ -409,6 +409,10 @@ export const AIRecordIdsResponseSchema = z.object({
   recordIds: z.array(z.number())
 })
 
+export const AIAskResponseSchema = z.object({
+  chatId: z.string()
+})
+
 export const AiRecordResponseSchema = z.object({
   timestamp: z.number(),
   role: z.string(),
@@ -471,4 +475,5 @@ export type UserQQItem = z.infer<typeof UserQQItemSchema>
 export type UserResponse = z.infer<typeof UserResponseSchema>
 
 export type AIRecordIdsResponse = z.infer<typeof AIRecordIdsResponseSchema>
+export type AIAskResponse = z.infer<typeof AIAskResponseSchema>
 export type AiRecordResponse = z.infer<typeof AiRecordResponseSchema>

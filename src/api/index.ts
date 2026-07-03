@@ -64,6 +64,7 @@ export type SteamStatusResponse = schemas.SteamStatusResponse
 
 // AI 相关
 export type AIRecordIdsResponse = schemas.AIRecordIdsResponse
+export type AIAskResponse = schemas.AIAskResponse
 export type AiRecordResponse = schemas.AiRecordResponse
 
 export interface RankQueryParams {
@@ -218,6 +219,11 @@ export const systemAPI = {
 
 // AI API 接口
 export const aiAPI = {
+  ask: async (prompt: string, persona?: string | null): Promise<AIAskResponse> => {
+    const response = await apiClient.post('/api/ai/ask', { prompt, persona })
+    return schemas.AIAskResponseSchema.parse(response)
+  },
+
   // 获取AI聊天记录编号列表
   getRecordIds: async (chatId: string): Promise<AIRecordIdsResponse> => {
     const response = await apiClient.post('/api/ai/recordids', { chatId })
