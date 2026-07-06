@@ -31,9 +31,14 @@ const chineseToEnglishMap: { [key: string]: string } = {
 	'炙热沙城Ⅱ': 'de_dust2',
 	'核子危机': 'de_nuke',
 	'列车停放站': 'de_train',
+	'假日锡拉': 'de_thera',
 	'佩纳宫': 'de_palais',
 	'黄金之岛': 'de_golden',
 	'圣杯': 'de_grail',
+	'死城之谜': 'de_cache',
+	'恶魔岛': 'de_warden',
+	'典狱长': 'de_warden',
+	'钢铁要塞': 'de_stronghold',
 	'办公室': 'cs_office',
 	'意大利小镇': 'cs_italy'
 }
