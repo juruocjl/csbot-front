@@ -107,6 +107,7 @@ const pageTitle = computed<string>(() => {
     '/data': '数据',
     '/history': '历史',
     '/history-gp': '官匹历史',
+    '/history-faceit': 'FACEIT 历史',
     '/history-all': '全站记录',
     '/rank': '排名',
     '/major-homework': '作业排名',
@@ -115,6 +116,7 @@ const pageTitle = computed<string>(() => {
     '/steam-status': '游戏状态',
     '/match': '比赛详情',
     '/match-gp': '官匹比赛详情',
+    '/match-faceit': 'FACEIT 比赛详情',
   }
   return titles[route.path] || 'Dashboard'
 })

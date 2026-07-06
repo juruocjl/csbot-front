@@ -241,7 +241,7 @@ const updateMatchHistory = async (): Promise<void> => {
   try {
     const result = await commonAPI.updatePlayerData(querySteamId.value)
     console.log('请求更新比赛历史成功:', result)
-    ElMessage.success(`${result.nickname} 更新 ${result.matchCount} 场完美比赛，${result.matchgpCount} 场官匹比赛`)
+    ElMessage.success(`${result.nickname} 更新 ${result.matchCount} 场完美比赛，${result.matchgpCount} 场官匹比赛，${result.faceitCount} 场 FACEIT 比赛`)
     // 只在成功时调用
     await loadPlayerInfo()
     await loadHistoryData()

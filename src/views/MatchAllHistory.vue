@@ -34,8 +34,8 @@
           <el-table-column label="模式" align="center">
             <template #default="{ row }">
               <div>
-                <el-tag :type="row.isGP ? 'danger' : 'success'" size="small" class="match-type-tag">
-                  {{ row.isGP ? '官匹' : '完美' }}
+                <el-tag :type="matchTypeTagType(row)" size="small" class="match-type-tag">
+                  {{ matchTypeLabel(row) }}
                 </el-tag>
                 {{ formatMode(row.mode) }}
               </div>
@@ -185,8 +185,20 @@ const formatMatchId = (matchId: string): string => {
 }
 
 const matchDetailLink = (match: AllMatchHistoryItem): string => {
-  const base = match.isGP ? '/match-gp' : '/match'
+  const base = match.matchType === 'faceit' ? '/match-faceit' : match.matchType === 'gp' || match.isGP ? '/match-gp' : '/match'
   return `${base}?id=${match.matchId}`
+}
+
+const matchTypeLabel = (match: AllMatchHistoryItem): string => {
+  if (match.matchType === 'faceit') return 'FACEIT'
+  if (match.matchType === 'gp' || match.isGP) return '官匹'
+  return '完美'
+}
+
+const matchTypeTagType = (match: AllMatchHistoryItem): 'success' | 'danger' | 'warning' => {
+  if (match.matchType === 'faceit') return 'warning'
+  if (match.matchType === 'gp' || match.isGP) return 'danger'
+  return 'success'
 }
 
 const scoreClass = (row: AllMatchHistoryItem, teamIndex: number): string => {
@@ -542,3 +554,4 @@ watch(() => route.query, async (newQuery) => {
   }
 }
 </style>
+

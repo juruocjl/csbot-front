@@ -4,8 +4,10 @@ import Data from '../views/Data.vue'
 import Login from '../views/Login.vue'
 import MatchDetail from '../views/MatchDetail.vue'
 import MatchGPDetail from '../views/MatchGPDetail.vue'
+import MatchFaceitDetail from '../views/MatchFaceitDetail.vue'
 import MatchHistory from '../views/MatchHistory.vue'
 import MatchGPHistory from '../views/MatchGPHistory.vue'
+import MatchFaceitHistory from '../views/MatchFaceitHistory.vue'
 import MatchAllHistory from '../views/MatchAllHistory.vue'
 import Rank from '../views/Rank.vue'
 import MajorHomeworkRank from '../views/MajorHomeworkRank.vue'
@@ -54,6 +56,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/match-faceit',
+    name: 'MatchFaceitDetail',
+    component: MatchFaceitDetail,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/history',
     name: 'MatchHistory',
     component: MatchHistory,
@@ -63,6 +71,12 @@ const routes: RouteRecordRaw[] = [
     path: '/history-gp',
     name: 'MatchGPHistory',
     component: MatchGPHistory,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/history-faceit',
+    name: 'MatchFaceitHistory',
+    component: MatchFaceitHistory,
     meta: { requiresAuth: true }
   },
   {

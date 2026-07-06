@@ -18,6 +18,14 @@ export const InfoSteamIdResponseSchema = z.object({
   steamId: z.string().nullable()
 })
 
+export const InfoFaceitResponseSchema = z.object({
+  steamId: z.string().nullable(),
+  playerId: z.string().nullable(),
+  nickname: z.string().nullable(),
+  skillLevel: z.number().int().nullable(),
+  faceitElo: z.number().int().nullable()
+})
+
 export const InfoQQResponseSchema = z.object({
   qq: z.string()
 })
@@ -113,6 +121,62 @@ export const MatchGPHistoryResponseSchema = z.object({
 })
 
 // 官匹比赛详情相关 Schemas
+export const MatchFaceitPlayerInfoSchema = z.object({
+  faceitPlayerId: z.string(),
+  steamId: z.string().nullable(),
+  nickname: z.string(),
+  team: z.number(),
+  skillLevel: z.number(),
+  faceitElo: z.number(),
+  adr: z.number(),
+  rating: z.number(),
+  kdRatio: z.number(),
+  kills: z.number(),
+  deaths: z.number(),
+  assists: z.number(),
+  headshotsPct: z.number(),
+  mvps: z.number()
+})
+
+export const MatchFaceitInfoSchema = z.object({
+  matchId: z.string(),
+  timestamp: z.number(),
+  winTeam: z.number(),
+  mode: z.string(),
+  competitionName: z.string(),
+  region: z.string(),
+  mapName: z.string(),
+  userTeam: z.union([z.number(), z.null()]),
+  team1Score: z.number(),
+  team2Score: z.number(),
+  players: z.array(MatchFaceitPlayerInfoSchema)
+})
+
+export const HistoryFaceitMatchSchema = z.object({
+  matchId: z.string(),
+  timeStamp: z.number(),
+  mode: z.string(),
+  competitionName: z.string(),
+  mapName: z.string(),
+  team1Score: z.number(),
+  team2Score: z.number(),
+  team: z.number(),
+  winTeam: z.number(),
+  adr: z.number(),
+  kdRatio: z.number(),
+  kills: z.number(),
+  deaths: z.number(),
+  assists: z.number(),
+  skillLevel: z.number(),
+  faceitElo: z.number()
+})
+
+export const MatchFaceitHistoryResponseSchema = z.object({
+  totCount: z.number(),
+  pageSize: z.number(),
+  matches: z.array(HistoryFaceitMatchSchema)
+})
+
 export const MatchGPPlayerInfoSchema = z.object({
   steamId: z.string(),
   nickname: z.string(),
@@ -146,6 +210,7 @@ export const AllMatchHistoryItemSchema = z.object({
   mode: z.string(),
   mapName: z.string(),
   isGP: z.boolean(),
+  matchType: z.enum(['pw', 'gp', 'faceit']).default('pw'),
   team1Score: z.number().int(),
   team2Score: z.number().int(),
   team1Player: z.array(z.string()),
@@ -166,6 +231,7 @@ export const PlayerUpdateSchema = z.object({
   nickname: z.string(),
   matchCount: z.number(),
   matchgpCount: z.number(),
+  faceitCount: z.number().default(0),
 })
 
 export const PlayerBaseSchema = z.object({
@@ -426,6 +492,7 @@ export type AuthData = z.infer<typeof AuthDataSchema>
 export type VerifyTokenResponse = z.infer<typeof VerifyTokenResponseSchema>
 export type InfoNameResponse = z.infer<typeof InfoNameResponseSchema>
 export type InfoSteamIdResponse = z.infer<typeof InfoSteamIdResponseSchema>
+export type InfoFaceitResponse = z.infer<typeof InfoFaceitResponseSchema>
 export type InfoQQResponse = z.infer<typeof InfoQQResponseSchema>
 export type UserInfo = z.infer<typeof UserInfoSchema>
 export type SendAuthResponse = z.infer<typeof SendAuthResponseSchema>
@@ -435,12 +502,16 @@ export type MatchData = z.infer<typeof MatchDataSchema>
 
 export type MatchGPPlayerInfo = z.infer<typeof MatchGPPlayerInfoSchema>
 export type MatchGPInfo = z.infer<typeof MatchGPInfoSchema>
+export type MatchFaceitPlayerInfo = z.infer<typeof MatchFaceitPlayerInfoSchema>
+export type MatchFaceitInfo = z.infer<typeof MatchFaceitInfoSchema>
 
 export type HistoryMatch = z.infer<typeof HistoryMatchSchema>
 export type MatchHistoryResponse = z.infer<typeof MatchHistoryResponseSchema>
 
 export type HistoryGPMatch = z.infer<typeof HistoryGPMatchSchema>
 export type MatchGPHistoryResponse = z.infer<typeof MatchGPHistoryResponseSchema>
+export type HistoryFaceitMatch = z.infer<typeof HistoryFaceitMatchSchema>
+export type MatchFaceitHistoryResponse = z.infer<typeof MatchFaceitHistoryResponseSchema>
 
 export type AllMatchHistoryItem = z.infer<typeof AllMatchHistoryItemSchema>
 export type AllMatchHistoryResponse = z.infer<typeof AllMatchHistoryResponseSchema>

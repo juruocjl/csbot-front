@@ -6,6 +6,7 @@ export type AuthData = schemas.AuthData
 export type VerifyTokenResponse = schemas.VerifyTokenResponse
 export type InfoNameResponse = schemas.InfoNameResponse
 export type InfoSteamIdResponse = schemas.InfoSteamIdResponse
+export type InfoFaceitResponse = schemas.InfoFaceitResponse
 export type InfoQQResponse = schemas.InfoQQResponse
 export type UserInfo = schemas.UserInfo
 export type SendAuthResponse = schemas.SendAuthResponse
@@ -15,12 +16,16 @@ export type Player = schemas.Player
 export type MatchData = schemas.MatchData
 export type MatchGPPlayerInfo = schemas.MatchGPPlayerInfo
 export type MatchGPInfo = schemas.MatchGPInfo
+export type MatchFaceitPlayerInfo = schemas.MatchFaceitPlayerInfo
+export type MatchFaceitInfo = schemas.MatchFaceitInfo
 
 // 历史记录相关
 export type HistoryMatch = schemas.HistoryMatch
 export type MatchHistoryResponse = schemas.MatchHistoryResponse
 export type HistoryGPMatch = schemas.HistoryGPMatch
 export type MatchGPHistoryResponse = schemas.MatchGPHistoryResponse
+export type HistoryFaceitMatch = schemas.HistoryFaceitMatch
+export type MatchFaceitHistoryResponse = schemas.MatchFaceitHistoryResponse
 export type AllMatchHistoryItem = schemas.AllMatchHistoryItem
 export type AllMatchHistoryResponse = schemas.AllMatchHistoryResponse
 
@@ -92,6 +97,11 @@ export const authAPI = {
     return schemas.InfoSteamIdResponseSchema.parse(response)
   },
 
+  getInfoFaceit: async (): Promise<InfoFaceitResponse> => {
+    const response = await apiClient.post('/api/auth/info/faceit')
+    return schemas.InfoFaceitResponseSchema.parse(response)
+  },
+
   // 获取用户绑定的 QQ 号
   getInfoQQ: async (): Promise<InfoQQResponse> => {
     const response = await apiClient.post('/api/auth/info/qq')
@@ -125,6 +135,11 @@ export const commonAPI = {
     return schemas.MatchGPInfoSchema.parse(response)
   },
 
+  getMatchFaceitInfo: async (matchId: string): Promise<MatchFaceitInfo> => {
+    const response = await apiClient.post('/api/match/infofaceit', { matchId: matchId })
+    return schemas.MatchFaceitInfoSchema.parse(response)
+  },
+
   // 获取比赛历史记录
   getMatchHistory: async (params: { steamId: string; timeType: string; page: number }): Promise<MatchHistoryResponse> => {
     const response = await apiClient.post('/api/match/history', params)
@@ -135,6 +150,11 @@ export const commonAPI = {
   getMatchGPHistory: async (params: { steamId: string; timeType: string; page: number }): Promise<MatchGPHistoryResponse> => {
     const response = await apiClient.post('/api/match/historygp', params)
     return schemas.MatchGPHistoryResponseSchema.parse(response)
+  },
+
+  getMatchFaceitHistory: async (params: { steamId: string; timeType: string; page: number }): Promise<MatchFaceitHistoryResponse> => {
+    const response = await apiClient.post('/api/match/historyfaceit', params)
+    return schemas.MatchFaceitHistoryResponseSchema.parse(response)
   },
 
   getAllMatchHistory: async (params: { page: number }): Promise<AllMatchHistoryResponse> => {
