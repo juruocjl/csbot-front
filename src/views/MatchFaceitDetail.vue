@@ -242,33 +242,61 @@ onMounted(loadMatchInfo)
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 2rem;
+  padding: 1.5rem;
   margin-top: 14px;
+  background: #f9fafb;
+  border-radius: 4px;
 }
 
 .team-score {
-  min-width: 120px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  padding: 10px 14px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.team-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+  height: 100%;
+  width: 100%;
 }
 
 .score {
-  font-size: 24px;
-  font-weight: 800;
+  font-size: 2rem;
+  color: #111827;
+  font-weight: 700;
 }
 
-.winner {
-  border-color: #16a34a;
+.team-score.winner {
+  border-color: #059669;
   background: #f0fdf4;
 }
 
-.loser {
-  border-color: #dc2626;
+.team-score.winner .score {
+  color: #059669;
+}
+
+.team-score.loser {
+  border-color: #fca5a5;
   background: #fef2f2;
+}
+
+.team-score.loser .score {
+  color: #dc2626;
+}
+
+.vs {
+  font-size: 1.25rem;
+  color: #6b7280;
+  font-weight: 600;
 }
 
 .comparison-table {
