@@ -67,11 +67,6 @@
                 <span v-else>{{ row.nickname }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="FACEIT" align="center" min-width="120">
-              <template #default="{ row }">
-                <FaceitLevelBadge :skill-level="row.skillLevel" :faceit-elo="row.faceitElo" />
-              </template>
-            </el-table-column>
             <el-table-column label="ADR" align="center">
               <template #default="{ row }">
                 <span :class="valueClass(row.adr, 75)">{{ formatNumber(row.adr, 1) }}</span>
@@ -100,6 +95,11 @@
             <el-table-column label="MVP" align="center">
               <template #default="{ row }">
                 {{ row.mvps }}
+              </template>
+            </el-table-column>
+            <el-table-column label="FACEIT" align="center" min-width="110">
+              <template #default="{ row }">
+                <FaceitLevelBadge :skill-level="row.skillLevel" :faceit-elo="row.faceitElo" compact />
               </template>
             </el-table-column>
           </el-table>

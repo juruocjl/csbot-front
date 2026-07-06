@@ -100,7 +100,7 @@
           </el-table-column>
           <el-table-column label="FACEIT" align="center">
             <template #default="{ row }">
-              <FaceitLevelBadge :skill-level="row.skillLevel" :faceit-elo="row.faceitElo" />
+              <FaceitLevelBadge :skill-level="row.skillLevel" :faceit-elo="row.faceitElo" compact />
             </template>
           </el-table-column>
         </el-table>
