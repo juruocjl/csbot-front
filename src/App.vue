@@ -38,6 +38,10 @@
           <Gamepad2 :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">游戏状态</span>
         </router-link>
+        <router-link to="/watch-stage" class="nav-item" @click="mobileMenuOpen = false">
+          <Eye :size="20" :stroke-width="2" />
+          <span v-show="!sidebarCollapsed">观将台</span>
+        </router-link>
       </nav>
       <div class="sidebar-toggle hidden-sm-and-down" @click="sidebarCollapsed = !sidebarCollapsed">
         <ChevronLeft v-if="!sidebarCollapsed" :size="20" :stroke-width="2" />
@@ -79,7 +83,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy, MessageSquare, Gamepad2, ClipboardCheck } from 'lucide-vue-next'
+import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy, MessageSquare, Gamepad2, ClipboardCheck, Eye } from 'lucide-vue-next'
 import { authAPI } from './api'
 
 const route = useRoute()
@@ -118,6 +122,7 @@ const pageTitle = computed<string>(() => {
     '/match-gp': '官匹比赛详情',
     '/match-faceit': 'FACEIT 比赛详情',
   }
+  titles['/watch-stage'] = '观将台'
   return titles[route.path] || 'Dashboard'
 })
 

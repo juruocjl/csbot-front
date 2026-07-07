@@ -66,6 +66,9 @@ export type MajorHomeworkPersonalResponse = schemas.MajorHomeworkPersonalRespons
 export type StatusResponse = schemas.StatusResponse
 export type SteamStatusItem = schemas.SteamStatusItem
 export type SteamStatusResponse = schemas.SteamStatusResponse
+export type WatchStageLivePlayer = schemas.WatchStageLivePlayer
+export type WatchStagePlayerProfile = schemas.WatchStagePlayerProfile
+export type WatchStageSnapshot = schemas.WatchStageSnapshot
 
 // AI 相关
 export type AIRecordIdsResponse = schemas.AIRecordIdsResponse
@@ -238,6 +241,13 @@ export const systemAPI = {
 }
 
 // AI API 接口
+export const watchStageAPI = {
+  getSnapshot: async (steamId: string): Promise<WatchStageSnapshot> => {
+    const response = await apiClient.post('/api/watch-stage/snapshot', { steamId })
+    return schemas.WatchStageSnapshotSchema.parse(response)
+  }
+}
+
 export const aiAPI = {
   ask: async (prompt: string, persona?: string | null): Promise<AIAskResponse> => {
     const response = await apiClient.post('/api/ai/ask', { prompt, persona })

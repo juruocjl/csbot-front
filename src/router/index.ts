@@ -14,6 +14,7 @@ import MajorHomeworkRank from '../views/MajorHomeworkRank.vue'
 import MajorHomeworkPersonal from '../views/MajorHomeworkPersonal.vue'
 import AIChat from '../views/AIChat.vue'
 import SteamStatus from '../views/SteamStatus.vue'
+import WatchStage from '../views/WatchStage.vue'
 import { ElMessage } from 'element-plus'
 import Cookies from 'js-cookie'
 import { authAPI } from '../api'
@@ -119,6 +120,12 @@ const routes: RouteRecordRaw[] = [
     path: '/steam-status',
     name: 'SteamStatus',
     component: SteamStatus,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/watch-stage',
+    name: 'WatchStage',
+    component: WatchStage,
     meta: { requiresAuth: true }
   }
 ]

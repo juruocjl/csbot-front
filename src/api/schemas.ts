@@ -457,6 +457,50 @@ export const SteamStatusResponseSchema = z.object({
   data: z.array(SteamStatusItemSchema)
 })
 
+export const WatchStageLivePlayerSchema = z.object({
+  steamId: z.string(),
+  side: z.string(),
+  kill: z.number(),
+  death: z.number(),
+  assist: z.number(),
+  score: z.number(),
+  adr: z.number(),
+  headshot: z.string().nullable(),
+  alive: z.boolean()
+})
+
+export const WatchStagePlayerProfileSchema = z.object({
+  steamId: z.string(),
+  nickname: z.string().nullable(),
+  avatar: z.string().nullable(),
+  pvpScore: z.number().int().nullable(),
+  pvpStars: z.number().int().nullable(),
+  legacyScore: z.number().nullable(),
+  avgRt: z.number().nullable(),
+  avgWe: z.number().nullable(),
+  faceitElo: z.number().int().nullable(),
+  faceitLevel: z.number().int().nullable(),
+  status: z.string(),
+  message: z.string().nullable(),
+  updatedAt: z.number().int().nullable()
+})
+
+export const WatchStageSnapshotSchema = z.object({
+  status: z.string(),
+  requestedSteamId: z.string(),
+  connectionId: z.string().nullable(),
+  message: z.string().nullable(),
+  matchId: z.string().nullable(),
+  map: z.string().nullable(),
+  ctScore: z.number().int().nullable(),
+  terroristScore: z.number().int().nullable(),
+  duration: z.string().nullable(),
+  warmUpStatus: z.boolean().nullable(),
+  updatedAt: z.number().int().nullable(),
+  players: z.array(WatchStageLivePlayerSchema),
+  profiles: z.record(z.string(), WatchStagePlayerProfileSchema)
+})
+
 // 用户相关 Schemas
 export const UserQQItemSchema = z.object({
   qq: z.string(),
@@ -542,6 +586,9 @@ export type MajorHomeworkPersonalResponse = z.infer<typeof MajorHomeworkPersonal
 export type StatusResponse = z.infer<typeof StatusResponseSchema>
 export type SteamStatusItem = z.infer<typeof SteamStatusItemSchema>
 export type SteamStatusResponse = z.infer<typeof SteamStatusResponseSchema>
+export type WatchStageLivePlayer = z.infer<typeof WatchStageLivePlayerSchema>
+export type WatchStagePlayerProfile = z.infer<typeof WatchStagePlayerProfileSchema>
+export type WatchStageSnapshot = z.infer<typeof WatchStageSnapshotSchema>
 export type UserQQItem = z.infer<typeof UserQQItemSchema>
 export type UserResponse = z.infer<typeof UserResponseSchema>
 
