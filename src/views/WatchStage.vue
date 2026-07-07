@@ -175,7 +175,7 @@ const RankCell = defineComponent({
   setup(props) {
     return () => {
       const profile = props.profile as WatchStagePlayerProfile | undefined
-      if (!profile?.pvpScore) return h('span', { class: 'muted' }, '-')
+      if (!profile?.pvpScore) return h('span', { class: 'muted' }, '?')
       return h(RankBadge, {
         pvpScore: profile.pvpScore,
         pvpStars: profile.pvpStars ?? 0
