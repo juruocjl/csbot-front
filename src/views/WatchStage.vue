@@ -134,8 +134,8 @@
 
 <script setup lang="ts">
 import { computed, defineComponent, h, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElAvatar, ElTag } from 'element-plus'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { ElTag } from 'element-plus'
 import UserChoose from '../components/UserChoose.vue'
 import MapIcon from '../components/MapIcon.vue'
 import RankBadge from '../components/RankBadge.vue'
@@ -158,15 +158,12 @@ const PlayerCell = defineComponent({
     return () => {
       const player = props.player as WatchStageLivePlayer
       const profile = props.profile as WatchStagePlayerProfile | undefined
-      const avatar = profile?.avatar || `/imgs/avatar/${player.steamId}.png`
       const nickname = profile?.nickname || player.steamId
-      return h('div', { class: 'player-cell' }, [
-        h(ElAvatar, { size: 34, src: avatar }),
-        h('div', { class: 'player-meta' }, [
-          h('div', { class: 'player-name' }, nickname),
-          h('div', { class: 'player-id' }, player.steamId)
-        ])
-      ])
+      return h(RouterLink, {
+        to: `/data?steamId=${player.steamId}`,
+        class: 'nickname-link',
+        title: nickname
+      }, () => nickname)
     }
   }
 })
@@ -414,8 +411,7 @@ onMounted(async () => {
   color: #111827;
 }
 
-.match-id,
-.player-id {
+.match-id {
   font-size: 0.76rem;
   color: #9ca3af;
 }
@@ -431,24 +427,21 @@ onMounted(async () => {
   color: #2563eb;
 }
 
-.player-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  min-width: 0;
-}
-
-.player-meta {
-  min-width: 0;
-}
-
-.player-name {
+.nickname-link {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #111827;
+  color: #2563eb;
+  text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.nickname-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
 }
 
 :deep(.rank-display-cell),
