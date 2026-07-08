@@ -360,7 +360,6 @@ onMounted(async () => {
 }
 
 .query-section,
-.match-info-card,
 .table-section,
 .empty-wrap {
   background: #ffffff;
@@ -413,10 +412,14 @@ onMounted(async () => {
 .match-content {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .match-info-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -470,6 +473,8 @@ onMounted(async () => {
   font-size: 0.875rem;
   color: #6b7280;
   font-weight: 500;
+  height: 100%;
+  width: 100%;
 }
 
 .score {
@@ -479,24 +484,29 @@ onMounted(async () => {
 }
 
 .vs {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 600;
   color: #6b7280;
 }
 
 .legacy-display {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
   background: #f9fafb;
+  border: 1px dashed #e5e7eb;
   border-radius: 4px;
 }
 
 .legacy-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
 }
 
 .legacy-label {
@@ -506,8 +516,7 @@ onMounted(async () => {
 
 .legacy-value {
   color: #111827;
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .table-section {
