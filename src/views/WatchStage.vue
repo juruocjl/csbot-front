@@ -31,20 +31,37 @@
     />
 
     <div v-if="snapshot?.status === 'running'" class="match-content">
-      <section class="match-summary">
-        <div class="summary-main">
-          <div class="score-block ct">
-            <span class="side-label">CT</span>
-            <strong>{{ snapshot.ctScore ?? '-' }}</strong>
+      <section class="match-info-card">
+        <div class="info-row">
+          <div class="info-item">
+            <label>Match ID</label>
+            <span>{{ snapshot.matchId || '-' }}</span>
           </div>
-          <div class="map-block">
+          <div class="info-item">
+            <label>Map</label>
             <MapIcon v-if="snapshot.map" :map-name="snapshot.map" />
-            <div class="map-name">{{ snapshot.map || '-' }}</div>
-            <div class="match-id">{{ snapshot.matchId || '-' }}</div>
+            <span v-else>-</span>
           </div>
-          <div class="score-block t">
-            <span class="side-label">T</span>
-            <strong>{{ snapshot.terroristScore ?? '-' }}</strong>
+        </div>
+        <div class="score-display">
+          <div class="team-score">
+            <span class="team-label">CT</span>
+            <span class="score">{{ snapshot.ctScore ?? '-' }}</span>
+          </div>
+          <span class="vs">VS</span>
+          <div class="team-score">
+            <span class="team-label">T</span>
+            <span class="score">{{ snapshot.terroristScore ?? '-' }}</span>
+          </div>
+        </div>
+        <div class="legacy-display">
+          <div class="legacy-item">
+            <span class="legacy-label">CT &#24213;&#34164;&#20998;</span>
+            <span class="legacy-value">{{ formatTeamLegacy(ctPlayers) }}</span>
+          </div>
+          <div class="legacy-item">
+            <span class="legacy-label">T &#24213;&#34164;&#20998;</span>
+            <span class="legacy-value">{{ formatTeamLegacy(tPlayers) }}</span>
           </div>
         </div>
       </section>
@@ -52,9 +69,24 @@
       <section class="table-section">
         <div class="team-title">CT</div>
         <el-table :data="ctPlayers" style="width: 100%" row-key="steamId">
-          <el-table-column label="玩家" min-width="220">
+          <el-table-column :label="'\u5934\u50cf'" align="center" width="80">
             <template #default="{ row }">
-              <PlayerCell :player="row" :profile="profileOf(row.steamId)" />
+              <router-link :to="`/data?steamId=${row.steamId}`" class="avatar-link">
+                <el-avatar
+                  :src="avatarSrc(row.steamId)"
+                  :alt="playerNickname(row)"
+                  :size="40"
+                  shape="circle"
+                  @error="handleImageError"
+                />
+              </router-link>
+            </template>
+          </el-table-column>
+          <el-table-column :label="'\u6635\u79f0'" min-width="100" align="center">
+            <template #default="{ row }">
+              <router-link :to="`/data?steamId=${row.steamId}`" class="nickname-link">
+                {{ playerNickname(row) }}
+              </router-link>
             </template>
           </el-table-column>
           <el-table-column label="K/D/A" align="center" width="110">
@@ -89,9 +121,24 @@
 
         <div class="team-title terrorist">T</div>
         <el-table :data="tPlayers" style="width: 100%" row-key="steamId">
-          <el-table-column label="玩家" min-width="220">
+          <el-table-column :label="'\u5934\u50cf'" align="center" width="80">
             <template #default="{ row }">
-              <PlayerCell :player="row" :profile="profileOf(row.steamId)" />
+              <router-link :to="`/data?steamId=${row.steamId}`" class="avatar-link">
+                <el-avatar
+                  :src="avatarSrc(row.steamId)"
+                  :alt="playerNickname(row)"
+                  :size="40"
+                  shape="circle"
+                  @error="handleImageError"
+                />
+              </router-link>
+            </template>
+          </el-table-column>
+          <el-table-column :label="'\u6635\u79f0'" min-width="100" align="center">
+            <template #default="{ row }">
+              <router-link :to="`/data?steamId=${row.steamId}`" class="nickname-link">
+                {{ playerNickname(row) }}
+              </router-link>
             </template>
           </el-table-column>
           <el-table-column label="K/D/A" align="center" width="110">
@@ -134,7 +181,7 @@
 
 <script setup lang="ts">
 import { computed, defineComponent, h, onMounted, ref, watch } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElTag } from 'element-plus'
 import UserChoose from '../components/UserChoose.vue'
 import MapIcon from '../components/MapIcon.vue'
@@ -148,25 +195,6 @@ const snapshot = ref<WatchStageSnapshot | null>(null)
 const loading = ref<boolean>(false)
 const refreshing = ref<boolean>(false)
 const errorMessage = ref<string>('')
-
-const PlayerCell = defineComponent({
-  props: {
-    player: { type: Object, required: true },
-    profile: { type: Object, required: false }
-  },
-  setup(props) {
-    return () => {
-      const player = props.player as WatchStageLivePlayer
-      const profile = props.profile as WatchStagePlayerProfile | undefined
-      const nickname = profile?.nickname || player.steamId
-      return h(RouterLink, {
-        to: `/data?steamId=${player.steamId}`,
-        class: 'nickname-link',
-        title: nickname
-      }, () => nickname)
-    }
-  }
-})
 
 const RankCell = defineComponent({
   props: {
@@ -236,6 +264,20 @@ const profileOf = (steamId: string): WatchStagePlayerProfile | undefined => {
   return snapshot.value?.profiles?.[steamId]
 }
 
+const avatarSrc = (steamId: string): string => {
+  return `/imgs/avatar/${steamId}.png`
+}
+
+const playerNickname = (player: WatchStageLivePlayer): string => {
+  return profileOf(player.steamId)?.nickname || player.steamId
+}
+
+const handleImageError = (e: Event): void => {
+  const img = e.target as HTMLImageElement
+  img.src =
+    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"%3E%3Crect fill="%23e5e7eb" width="40" height="40"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="14"%3E?%3C/text%3E%3C/svg%3E'
+}
+
 const formatFixed = (value: number | null | undefined, digits: number): string => {
   const num = Number(value)
   if (!Number.isFinite(num)) return '-'
@@ -245,6 +287,15 @@ const formatFixed = (value: number | null | undefined, digits: number): string =
 const profileNumber = (value: number | null | undefined, digits: number): string => {
   if (value === null || value === undefined) return '-'
   return formatFixed(value, digits)
+}
+
+const formatTeamLegacy = (players: WatchStageLivePlayer[]): string => {
+  const values = players
+    .map((player) => profileOf(player.steamId)?.legacyScore)
+    .filter((value): value is number => value !== null && value !== undefined && Number.isFinite(Number(value)))
+  if (!values.length) return '-'
+  const total = values.reduce((sum, value) => sum + Number(value), 0)
+  return Math.round(total / values.length).toString()
 }
 
 const formatTime = (timestamp: number): string => {
@@ -309,7 +360,7 @@ onMounted(async () => {
 }
 
 .query-section,
-.match-summary,
+.match-info-card,
 .table-section,
 .empty-wrap {
   background: #ffffff;
@@ -365,55 +416,98 @@ onMounted(async () => {
   gap: 1rem;
 }
 
-.summary-main {
-  display: grid;
-  grid-template-columns: 1fr minmax(180px, 280px) 1fr;
-  align-items: center;
-  gap: 1rem;
+.match-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.score-block {
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.info-item {
   display: flex;
-  align-items: baseline;
-  justify-content: center;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
-.score-block strong {
-  font-size: 2rem;
-  line-height: 1;
+.info-item label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
 }
 
-.side-label {
-  font-size: 0.85rem;
-  font-weight: 800;
-}
-
-.ct .side-label {
-  color: #2563eb;
-}
-
-.t .side-label,
-.terrorist {
-  color: #d97706;
-}
-
-.map-block {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.map-name {
-  font-weight: 700;
+.info-item span {
+  font-size: 1rem;
   color: #111827;
 }
 
-.match-id {
-  font-size: 0.76rem;
-  color: #9ca3af;
+.score-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.team-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.team-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.score {
+  font-size: 2rem;
+  color: #111827;
+  font-weight: 700;
+}
+
+.vs {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.legacy-display {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.legacy-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legacy-label {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.legacy-value {
+  color: #111827;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .table-section {
@@ -451,9 +545,13 @@ onMounted(async () => {
 }
 
 @media (max-width: 900px) {
-  .query-form,
-  .summary-main {
+  .query-form {
     grid-template-columns: 1fr;
+  }
+
+  .score-display,
+  .legacy-display {
+    flex-direction: column;
   }
 }
 </style>
