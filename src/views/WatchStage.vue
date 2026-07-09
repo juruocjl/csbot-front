@@ -230,12 +230,20 @@ const ProfileStatus = defineComponent({
 })
 
 const ctPlayers = computed(() => {
-  return (snapshot.value?.players || []).filter((player) => player.side === 'CT')
+  return sortPlayersByAdr((snapshot.value?.players || []).filter((player) => player.side === 'CT'))
 })
 
 const tPlayers = computed(() => {
-  return (snapshot.value?.players || []).filter((player) => player.side === 'TERRORIST')
+  return sortPlayersByAdr((snapshot.value?.players || []).filter((player) => player.side === 'TERRORIST'))
 })
+
+const sortPlayersByAdr = (players: WatchStageLivePlayer[]): WatchStageLivePlayer[] => {
+  return [...players].sort((left, right) => {
+    const adrDiff = Number(right.adr || 0) - Number(left.adr || 0)
+    if (adrDiff !== 0) return adrDiff
+    return Number(right.kill || 0) - Number(left.kill || 0)
+  })
+}
 
 const statusText = computed(() => {
   if (loading.value) return '连接中'
