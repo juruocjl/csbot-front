@@ -97,17 +97,20 @@ const playingUsers = computed<SteamStatusItem[]>(() => {
   return steamStatus.value.filter((item) => item.game_appid.trim() !== '')
 })
 
-const isOnlineState = (state: string): boolean => {
-  const normalized = state.trim().toLowerCase()
+const isOnlineState = (item: SteamStatusItem): boolean => {
+  if (item.state_code !== 0) {
+    return true
+  }
+  const normalized = item.state.trim().toLowerCase()
   return normalized === 'online' || normalized === '在线'
 }
 
 const onlineIdleUsers = computed<SteamStatusItem[]>(() => {
-  return steamStatus.value.filter((item) => isOnlineState(item.state) && item.game_appid.trim() === '')
+  return steamStatus.value.filter((item) => isOnlineState(item) && item.game_appid.trim() === '')
 })
 
 const onlineUsers = computed<SteamStatusItem[]>(() => {
-  return steamStatus.value.filter((item) => isOnlineState(item.state))
+  return steamStatus.value.filter((item) => isOnlineState(item))
 })
 
 const groupedGames = computed<GameGroup[]>(() => {
