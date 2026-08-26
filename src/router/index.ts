@@ -15,6 +15,7 @@ import MajorHomeworkPersonal from '../views/MajorHomeworkPersonal.vue'
 import AIChat from '../views/AIChat.vue'
 import SteamStatus from '../views/SteamStatus.vue'
 import WatchStage from '../views/WatchStage.vue'
+import AdminConfig from '../views/AdminConfig.vue'
 import { ElMessage } from 'element-plus'
 import Cookies from 'js-cookie'
 import { authAPI } from '../api'
@@ -22,6 +23,7 @@ import { authAPI } from '../api'
 declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean
+    requiresAdmin?: boolean
   }
 }
 
@@ -127,6 +129,12 @@ const routes: RouteRecordRaw[] = [
     name: 'WatchStage',
     component: WatchStage,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/config',
+    name: 'AdminConfig',
+    component: AdminConfig,
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]
 
@@ -157,7 +165,12 @@ router.beforeEach(async (to, _from, next: NavigationGuardNext) => {
 
   // 检查 token 是否有效
   try {
-    await authAPI.verify()
+    const verification = await authAPI.verify()
+    if (to.meta.requiresAdmin && !verification.isAdmin) {
+      ElMessage.error('需要管理员权限')
+      next('/')
+      return
+    }
     next()
   } catch (error: any) {
     if(error.response?.status === 401) {

@@ -48,6 +48,8 @@ export type PlayerDetailResponse = schemas.PlayerDetailResponse
 export type TimeResponse = schemas.TimeResponse
 export type RankConfigItem = schemas.RankConfigItem
 export type RankConfigResponse = schemas.RankConfigResponse
+export type RuntimeConfigItem = schemas.RuntimeConfigItem
+export type RuntimeConfigListResponse = schemas.RuntimeConfigListResponse
 
 // 用户相关
 export type UserQQItem = schemas.UserQQItem
@@ -202,6 +204,18 @@ export const configAPI = {
   getUsers: async (): Promise<UserResponse> => {
     const response = await apiClient.post('/api/config/users')
     return schemas.UserResponseSchema.parse(response)
+  }
+}
+
+export const adminConfigAPI = {
+  list: async (): Promise<RuntimeConfigListResponse> => {
+    const response = await apiClient.get('/api/admin/runtime-config')
+    return schemas.RuntimeConfigListResponseSchema.parse(response)
+  },
+
+  update: async (key: string, value: unknown): Promise<RuntimeConfigItem> => {
+    const response = await apiClient.put(`/api/admin/runtime-config/${encodeURIComponent(key)}`, { value })
+    return schemas.RuntimeConfigItemSchema.parse(response)
   }
 }
 

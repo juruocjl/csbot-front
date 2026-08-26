@@ -7,7 +7,8 @@ export const AuthDataSchema = z.object({
 })
 
 export const VerifyTokenResponseSchema = z.object({
-  isVerified: z.boolean()
+  isVerified: z.boolean(),
+  isAdmin: z.boolean()
 })
 
 export const InfoNameResponseSchema = z.object({
@@ -363,6 +364,22 @@ export const RankConfigResponseSchema = z.object({
   rankOptions: z.array(RankConfigItemSchema)
 })
 
+export const RuntimeConfigItemSchema = z.object({
+  key: z.string(),
+  name: z.string(),
+  description: z.string(),
+  valueType: z.string(),
+  editor: z.string(),
+  value: z.unknown(),
+  defaultValue: z.unknown(),
+  updatedAt: z.number().int().nullable(),
+  updatedBy: z.string().nullable()
+})
+
+export const RuntimeConfigListResponseSchema = z.object({
+  items: z.array(RuntimeConfigItemSchema)
+})
+
 // 排名相关 Schemas
 export const RankItemSchema = z.object({
   steamId: z.string(),
@@ -577,6 +594,8 @@ export type PlayerDetailResponse = z.infer<typeof PlayerDetailResponseSchema>
 export type TimeResponse = z.infer<typeof TimeResponseSchema>
 export type RankConfigItem = z.infer<typeof RankConfigItemSchema>
 export type RankConfigResponse = z.infer<typeof RankConfigResponseSchema>
+export type RuntimeConfigItem = z.infer<typeof RuntimeConfigItemSchema>
+export type RuntimeConfigListResponse = z.infer<typeof RuntimeConfigListResponseSchema>
 export type RankItem = z.infer<typeof RankItemSchema>
 export type RankResponse = z.infer<typeof RankResponseSchema>
 export type MajorHomeworkPick = z.infer<typeof MajorHomeworkPickSchema>

@@ -42,6 +42,10 @@
           <Eye :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">观将台</span>
         </router-link>
+        <router-link v-if="isAdmin" to="/admin/config" class="nav-item" @click="mobileMenuOpen = false">
+          <Settings :size="20" :stroke-width="2" />
+          <span v-show="!sidebarCollapsed">运行配置</span>
+        </router-link>
       </nav>
       <div class="sidebar-toggle hidden-sm-and-down" @click="sidebarCollapsed = !sidebarCollapsed">
         <ChevronLeft v-if="!sidebarCollapsed" :size="20" :stroke-width="2" />
@@ -83,7 +87,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy, MessageSquare, Gamepad2, ClipboardCheck, Eye } from 'lucide-vue-next'
+import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy, MessageSquare, Gamepad2, ClipboardCheck, Eye, Settings } from 'lucide-vue-next'
 import { authAPI } from './api'
 
 const route = useRoute()
@@ -91,6 +95,7 @@ const router = useRouter()
 const mobileMenuOpen = ref<boolean>(false)
 const sidebarCollapsed = ref<boolean>(localStorage.getItem('sidebarCollapsed') !== 'false')
 const showName = ref<string>('用户')
+const isAdmin = ref<boolean>(false)
 
 const hideSidebar = computed<boolean>(() => {
   const rawValue = route.query.hideSidebar
@@ -123,6 +128,7 @@ const pageTitle = computed<string>(() => {
     '/match-faceit': 'FACEIT 比赛详情',
   }
   titles['/watch-stage'] = '观将台'
+  titles['/admin/config'] = '运行配置'
   return titles[route.path] || 'Dashboard'
 })
 
@@ -152,8 +158,12 @@ const handleShare = (): void => {
 
 onMounted(async () => {
   try {
-    const result = await authAPI.getInfoName()
-    showName.value = result.showName
+    const [nameResult, verification] = await Promise.all([
+      authAPI.getInfoName(),
+      authAPI.verify()
+    ])
+    showName.value = nameResult.showName
+    isAdmin.value = verification.isAdmin
   } catch (err) {
     console.error('获取用户名失败:', err)
   }
@@ -161,8 +171,9 @@ onMounted(async () => {
   // 监听从登录页跳转的情况
   router.afterEach((_to, from) => {
     if (from.path === '/login') {
-      authAPI.getInfoName().then(result => {
-        showName.value = result.showName
+      Promise.all([authAPI.getInfoName(), authAPI.verify()]).then(([nameResult, verification]) => {
+        showName.value = nameResult.showName
+        isAdmin.value = verification.isAdmin
       }).catch(err => {
         console.error('获取用户名失败:', err)
       })
