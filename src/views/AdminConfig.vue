@@ -32,6 +32,12 @@
       <p v-if="item.valueType === 'integer_list'" class="format-hint">
         请输入 JSON 正整数数组，例如 [123456, 789012]
       </p>
+      <p v-else-if="item.valueType === 'string_map'" class="format-hint">
+        请输入 JSON 对象，例如 {"中国（北京）":"Asia/Shanghai"}
+      </p>
+      <p v-else-if="item.valueType === 'string'" class="format-hint">
+        请输入 JSON 字符串，例如 "model-name"
+      </p>
 
       <div class="card-footer">
         <span class="updated-at">{{ updateDescription(item) }}</span>
