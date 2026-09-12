@@ -32,6 +32,9 @@
       <p v-if="item.valueType === 'integer_list'" class="format-hint">
         请输入 JSON 正整数数组，例如 [123456, 789012]
       </p>
+      <p v-else-if="item.valueType === 'string_list'" class="format-hint">
+        请输入 JSON 字符串数组，例如 ["dy_6657", "bili_1883358196"]
+      </p>
       <p v-else-if="item.valueType === 'string_map'" class="format-hint">
         请输入 JSON 对象，例如 {"中国（北京）":"Asia/Shanghai"}
       </p>
