@@ -625,3 +625,8 @@ export type UserResponse = z.infer<typeof UserResponseSchema>
 export type AIRecordIdsResponse = z.infer<typeof AIRecordIdsResponseSchema>
 export type AIAskResponse = z.infer<typeof AIAskResponseSchema>
 export type AiRecordResponse = z.infer<typeof AiRecordResponseSchema>
+
+export const AIConversationsSchema = z.object({
+  records: z.array(z.object({id:z.string(),request:z.string(),status:z.string(),channel:z.string(),created_at:z.number()})),
+  nextCursor: z.number().int().positive().nullable()
+})

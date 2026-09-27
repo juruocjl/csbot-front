@@ -262,7 +262,12 @@ export const watchStageAPI = {
   }
 }
 
+export interface AIConversationRecord { id: string; request: string; status: string; channel: string; created_at: number }
 export const aiAPI = {
+  conversations: async (before: number | null = null): Promise<{records: AIConversationRecord[]; nextCursor: number | null}> => {
+    const response = await apiClient.post('/api/ai/conversations', { before })
+    return schemas.AIConversationsSchema.parse(response)
+  },
   supplement: async (chatId: string, prompt: string, conversation: string) =>
     apiClient.post('/api/ai/supplement', { chatId, prompt, conversation }) as unknown as Promise<{chatId: string; delivery: string}>,
   history: async (conversation = 'default') => {
