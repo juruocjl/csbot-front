@@ -2,12 +2,12 @@
   <div class="chat-container">
     <div class="query-section">
       <div class="query-form">
-        <label>Chat ID</label>
+        <label>回复记录编号</label>
         <div class="input-with-button">
           <input
             v-model="inputChatId"
             class="form-input"
-            placeholder="输入 Chat ID"
+            placeholder="输入回复记录编号"
             @keyup.enter="handleSearch"
           >
           <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -31,8 +31,8 @@
           <div class="prompt-panel-header">
             <MessageSquare :size="28" />
             <div>
-              <h3>新建 AI 对话</h3>
-              <p>输入问题后会创建新的 Chat ID，并跳转到对话记录页。</p>
+              <h3>个人 AI 会话</h3>
+              <p>这里的对话只属于你，不会写入 QQ 群记忆。</p>
             </div>
           </div>
           <el-input
@@ -40,7 +40,7 @@
             type="textarea"
             :rows="5"
             resize="vertical"
-            placeholder="输入 prompt"
+            placeholder="想聊点什么？"
             @keydown.ctrl.enter.prevent="handleAsk"
             @keydown.meta.enter.prevent="handleAsk"
           />
@@ -58,6 +58,7 @@
       </div>
 
       <div v-else class="message-list">
+        <p v-if="runStatus === 'interrupted'" class="run-notice">这次回复中断了，已有记录已保留。可以重新发送问题。</p>
         <div v-for="(msg, index) in records" :key="index" :class="['message-item', msg.role]">
           <template v-if="msg.role === 'system'">
             <div class="system-message">
@@ -124,6 +125,25 @@
         </div>
       </div>
     </div>
+    <div class="personal-composer">
+      <details v-if="personalHistory.length">
+        <summary>个人会话最近对话（{{ personalHistory.length }}）</summary>
+        <div class="personal-history">
+          <div v-for="turn in personalHistory" :key="turn.id">
+            <p><strong>你：</strong>{{ turn.request }}</p>
+            <p><strong>回复：</strong>{{ turn.response || (turn.status === 'interrupted' ? '这次对话中断了，可以重新发送。' : '正在回复…') }}</p>
+            <el-button link @click="navigateToChat(turn.id)">查看这次回复的记录</el-button>
+          </div>
+        </div>
+      </details>
+      <template v-if="chatId">
+      <p>继续你的个人会话。查看群回复记录不会把它变成个人会话。</p>
+      <el-input v-model="promptText" type="textarea" :rows="3" placeholder="继续聊…"
+        @keydown.ctrl.enter.prevent="handleAsk" @keydown.meta.enter.prevent="handleAsk" />
+      <el-button type="primary" :loading="asking" :disabled="!promptText.trim()" @click="handleAsk">发送</el-button>
+      </template>
+      <el-button :disabled="asking" @click="newConversation">新建个人会话</el-button>
+    </div>
   </div>
 </template>
 
@@ -146,9 +166,22 @@ const chatId = ref(route.query.chatId as string || '')
 const inputChatId = ref(chatId.value)
 const promptText = ref('')
 const asking = ref(false)
+const conversation = ref(sessionStorage.getItem('ai-personal-conversation') || 'default')
+const personalHistory = ref<Array<{ id: string; request: string; response: string | null; status: string; created_at: number }>>([])
+const loadPersonalHistory = async () => {
+  try { personalHistory.value = (await aiAPI.history(conversation.value)).turns }
+  catch { personalHistory.value = [] }
+}
+const newConversation = () => {
+  conversation.value = crypto.randomUUID()
+  sessionStorage.setItem('ai-personal-conversation', conversation.value)
+  personalHistory.value = []
+  router.push({ path: '/ai-chat' })
+}
 const recordIds = ref<number[]>([])
 const records = ref<DisplayRecord[]>([])
 const loading = ref(false)
+const runStatus = ref('unknown')
 const error = ref<string | null>(null)
 const pollingTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
@@ -210,7 +243,7 @@ const handleAsk = async () => {
   if (!prompt || asking.value) return
   asking.value = true
   try {
-    const result = await aiAPI.ask(prompt)
+    const result = await aiAPI.ask(prompt, null, conversation.value)
     promptText.value = ''
     navigateToChat(result.chatId)
   } catch (err: any) {
@@ -238,6 +271,7 @@ const fetchChatHistory = async (isIncremental = false) => {
 
   try {
     const idsResult = await aiAPI.getRecordIds(chatId.value)
+    runStatus.value = idsResult.status || 'unknown'
     const newIds = idsResult.recordIds.filter(id => !recordIds.value.includes(id))
 
     if (newIds.length > 0) {
@@ -270,6 +304,7 @@ const fetchChatHistory = async (isIncremental = false) => {
       pollingTimer.value = setTimeout(() => fetchChatHistory(true), 5000)
     } else {
       stopPolling()
+      await loadPersonalHistory()
     }
   } catch (err: any) {
     if (!isIncremental) {
@@ -284,6 +319,7 @@ const fetchChatHistory = async (isIncremental = false) => {
 }
 
 onMounted(() => {
+  loadPersonalHistory()
   if (chatId.value) {
     fetchChatHistory()
   }
@@ -315,6 +351,11 @@ const formatRole = (role: string) => {
 </script>
 
 <style scoped>
+.personal-composer { padding: 16px; border-top: 1px solid #e5e7eb; background: white; }
+.personal-composer p { color: #64748b; font-size: 13px; margin: 0 0 8px; }
+.personal-composer button { margin-top: 10px; }
+.personal-history { max-height: 240px; overflow-y: auto; white-space: pre-wrap; }
+.personal-history > div { border-bottom: 1px solid #e5e7eb; padding: 10px 0; }
 .chat-container {
   display: flex;
   flex-direction: column;

@@ -534,11 +534,20 @@ export const UserResponseSchema = z.object({
 // AI 相关 Schemas
 export const AIRecordIdsResponseSchema = z.object({
   isEnd: z.boolean(),
-  recordIds: z.array(z.number())
+  recordIds: z.array(z.number()),
+  status: z.string().optional()
 })
 
 export const AIAskResponseSchema = z.object({
   chatId: z.string()
+})
+
+export const AIPersonalHistorySchema = z.object({
+  turns: z.array(z.object({
+    id: z.string(), request: z.string(), response: z.string().nullable(),
+    status: z.string(), created_at: z.number()
+  })),
+  limit: z.number()
 })
 
 export const AiRecordResponseSchema = z.object({

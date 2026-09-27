@@ -263,8 +263,12 @@ export const watchStageAPI = {
 }
 
 export const aiAPI = {
-  ask: async (prompt: string, persona?: string | null): Promise<AIAskResponse> => {
-    const response = await apiClient.post('/api/ai/ask', { prompt, persona })
+  history: async (conversation = 'default') => {
+    const response = await apiClient.post('/api/ai/history', { conversation })
+    return schemas.AIPersonalHistorySchema.parse(response)
+  },
+  ask: async (prompt: string, persona?: string | null, conversation = 'default'): Promise<AIAskResponse> => {
+    const response = await apiClient.post('/api/ai/ask', { prompt, persona, conversation })
     return schemas.AIAskResponseSchema.parse(response)
   },
 
