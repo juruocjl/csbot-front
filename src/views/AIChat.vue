@@ -20,20 +20,26 @@
         <div class="question"><span class="speaker">提问</span><p>{{ turn.trace.request }}</p></div>
         <div class="reply">
           <div class="reply-header"><strong>AI</strong><span class="status" :class="turn.trace.status">{{ statusLabel(turn.trace.status) }}</span><span v-if="turn.connection" class="connection">{{ turn.connection }}</span></div>
-          <div v-for="(s,i) in turn.trace.supplements" :key="i" class="supplement">补充：{{ s.text }} <small>{{ s.delivery === 'unknown' ? '投递待确认，未自动重发' : '已插入' }}</small></div>
           <details class="process" @toggle="loadProcess(turn, $event)">
             <summary>{{ processLabel(turn) }}</summary>
             <p v-if="turn.trace.thinkingEnabled === false" class="muted">本轮未启用模型思考输出。</p>
             <p v-if="turn.trace.notice" class="notice">{{ turn.trace.notice }}</p>
-            <div v-for="(a,key) in turn.trace.attempts" :key="key">
-              <details v-if="a.reasoning" class="thinking"><summary>思考过程 <small v-if="a.state === 'running' && !finished(turn)">正在更新</small></summary><pre>{{ a.reasoning }}</pre></details>
-              <p v-if="a.state === 'abandoned'" class="muted">这次模型尝试中断，后续内容以重试结果为准。</p>
-            </div>
-            <details v-for="(tool,key) in turn.trace.tools" :key="key" class="tool-card">
-              <summary><span>{{ toolLabel(tool.name) }}</span><span>{{ tool.state === 'running' ? (finished(turn) ? '未完成' : '执行中') : tool.state === 'failed' ? '失败' : '完成' }}</span><small v-if="tool.end">{{ ((tool.end-tool.start)/1000).toFixed(1) }} 秒</small></summary>
-              <h5>输入</h5><pre>{{ tool.args || '无参数' }}</pre><h5>结果</h5><pre>{{ tool.result || (finished(turn) ? '没有返回结果' : '等待结果…') }}</pre>
-            </details>
-            <p v-if="!Object.keys(turn.trace.attempts).length && !Object.keys(turn.trace.tools).length" class="muted">{{ finished(turn) ? '这轮没有可用的详细过程；旧记录不会补造思考内容。' : '等待模型输出…' }}</p>
+            <ol class="process-timeline" aria-label="按发生顺序的执行过程">
+              <li v-for="(step,index) in turn.trace.timeline" :key="index" :data-step-kind="step.kind">
+                <span class="step-number" aria-hidden="true">{{ index+1 }}</span>
+                <div v-if="step.kind === 'reasoning' || step.kind === 'text'">
+                  <details v-if="step.kind === 'reasoning'" class="thinking" open><summary>思考 <small v-if="turn.trace.attempts[step.attempt]?.state === 'running' && !finished(turn)">正在更新</small></summary><pre>{{ step.text }}</pre></details>
+                  <div v-else class="process-text"><span class="muted">模型输出</span><p>{{ step.text }}</p></div>
+                  <p v-if="turn.trace.attempts[step.attempt]?.state === 'abandoned'" class="muted">这次模型尝试中断，后续内容以重试结果为准。</p>
+                </div>
+                <details v-else-if="step.kind === 'tool'" class="tool-card">
+                  <summary><span>{{ toolLabel(turn.trace.tools[step.id].name) }}</span><span>{{ turn.trace.tools[step.id].state === 'running' ? (finished(turn) ? '未完成' : '执行中') : turn.trace.tools[step.id].state === 'failed' ? '失败' : '完成' }}</span><small v-if="turn.trace.tools[step.id].end">{{ ((turn.trace.tools[step.id].end!-turn.trace.tools[step.id].start)/1000).toFixed(1) }} 秒</small></summary>
+                  <h5>输入</h5><pre>{{ turn.trace.tools[step.id].args || '无参数' }}</pre><h5>结果</h5><pre>{{ turn.trace.tools[step.id].result || (finished(turn) ? '没有返回结果' : '等待结果…') }}</pre>
+                </details>
+                <div v-else-if="step.kind === 'supplement'" class="supplement">补充：{{ step.text }} <small>{{ step.delivery === 'unknown' ? '投递待确认，未自动重发' : step.delivery === 'queued' ? '已排到下一轮' : '已插入' }}</small></div>
+              </li>
+            </ol>
+            <p v-if="!turn.trace.timeline.length" class="muted">{{ finished(turn) ? '这轮没有可用的详细过程；旧记录不会补造思考内容。' : '等待模型输出…' }}</p>
           </details>
           <div class="answer">{{ turn.trace.response || liveText(turn) || (turn.trace.status === 'queued' ? '已排队，前面的请求结束后开始。' : turn.trace.status === 'interrupted' ? '这轮中断了，已收到的内容保留在这里。' : '正在处理…') }}</div>
           <figure v-for="image in turn.trace.images" :key="image.id"><a v-if="image.url" :href="image.url" target="_blank" rel="noopener"><img :src="image.url" :alt="image.caption || '生成图表'" /></a><p v-else>图片加载中…</p><figcaption>{{ image.caption }}<span v-if="image.thumbnail"> · 原图已淘汰，当前为缩略图</span></figcaption></figure>
@@ -65,7 +71,7 @@ function processLabel(t:Turn) { const tools=Object.values(t.trace.tools); const 
 function makeTurn(id:string) { return reactive({id,trace:newTrace(),cursor:0,loaded:false,connection:''}) as Turn }
 function stop() { generation++; for(const c of controllers.values())c.abort();controllers.clear();for(const timer of retries)clearTimeout(timer);retries.clear();for(const t of turns.value)for(const img of t.trace.images)if(img.url)URL.revokeObjectURL(img.url);imageLoads.clear() }
 async function images(t:Turn) { const current=generation; for(const img of t.trace.images)if(!img.url && !imageLoads.has(img.id)){imageLoads.add(img.id);try{const result=await generatedImage(img.id);if(current!==generation){URL.revokeObjectURL(result.url);continue}Object.assign(img,result)}catch{t.trace.notice='有图片暂时无法加载，重新打开本轮可重试。'}finally{imageLoads.delete(img.id)}} }
-async function legacy(t:Turn) { const ids=await aiAPI.getRecordIds(t.id);t.trace.status=ids.status || 'completed';for(const id of ids.recordIds){const r=await aiAPI.getRecord(id);if(r.role==='user')t.trace.request=r.content || '';if(r.role==='assistant' && r.content)t.trace.response=r.content;if(r.role==='tool' && r.content){try{applyTrace(t.trace,JSON.parse(r.content))}catch{t.trace.tools[String(id)]={name:'历史工具',args:'',result:r.content,state:'done',start:0}}}} }
+async function legacy(t:Turn) { const ids=await aiAPI.getRecordIds(t.id);t.trace.status=ids.status || 'completed';for(const id of ids.recordIds){const r=await aiAPI.getRecord(id);if(r.role==='user')t.trace.request=r.content || '';if(r.role==='assistant' && r.content)t.trace.response=r.content;if(r.role==='tool' && r.content){try{applyTrace(t.trace,JSON.parse(r.content))}catch{t.trace.tools[String(id)]={name:'历史工具',args:'',result:r.content,state:'done',start:0};t.trace.timeline.push({kind:'tool',id:String(id)})}}} }
 async function connect(t:Turn, retry=0) {
   if(controllers.has(t.id))return
   const current=generation,controller=new AbortController();controllers.set(t.id,controller);t.connection=retry?'正在恢复连接…':''
@@ -116,4 +122,5 @@ onUnmounted(stop)
 .page-header,.reply-header,.tool-card summary{display:flex;align-items:center;gap:12px}.page-header{justify-content:space-between}.page-header h2{margin:0 0 8px}.page-header p,.muted,.connection{font-size:13px;color:var(--el-text-color-secondary)}
 summary{cursor:pointer;user-select:none}.turn-list{display:flex;flex-direction:column;gap:30px;min-height:200px}.welcome{text-align:center;color:var(--el-text-color-secondary);padding:50px 20px}.question{margin:0 0 18px 12%;padding:14px 18px;background:var(--el-fill-color-light);border-radius:14px}.question p{white-space:pre-wrap;margin:8px 0 0}.speaker{font-size:12px;color:var(--el-text-color-secondary)}.reply{padding:0 4px}.reply-header{margin-bottom:12px}.status{font-size:12px;color:var(--el-text-color-secondary)}.status.running{color:var(--el-color-primary)}.status.interrupted,.error{color:var(--el-color-danger)}.answer{white-space:pre-wrap;line-height:1.8;overflow-wrap:anywhere}.process{margin:12px 0;color:var(--el-text-color-secondary);font-size:13px}.process>summary{padding:8px 0}.thinking,.tool-card{background:var(--el-fill-color-light);border:1px solid var(--el-border-color-lighter);border-radius:8px;margin:10px 0;padding:10px 14px}.tool-card summary span:first-child{flex:1}.thinking summary{font-weight:500}.thinking small{margin-left:8px}.tool-card h5{margin:12px 0 5px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:420px;overflow:auto;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--el-text-color-regular)}.supplement,.notice{padding:10px 14px;border-left:3px solid var(--el-color-primary);background:var(--el-fill-color-light);font-size:13px;margin:10px 0}.supplement small{display:block;margin-top:4px;color:var(--el-text-color-secondary)}figure{margin:18px 0}figure img{max-width:100%;max-height:640px;border-radius:8px;border:1px solid var(--el-border-color-lighter)}figcaption{font-size:12px;color:var(--el-text-color-secondary);margin-top:6px}@media(max-width:600px){.ai-page{padding:18px 12px}.page-header{align-items:flex-start}.question{margin-left:5%}.record-meta{flex-wrap:wrap}}
 .record-list{display:flex;flex-direction:column;gap:14px;margin-top:24px}.record-card{display:block;padding:18px 20px;border:1px solid var(--el-border-color-lighter);border-radius:12px;text-decoration:none;color:inherit;background:var(--el-bg-color)}.record-card:hover{border-color:var(--el-color-primary)}.record-card:focus-visible{outline:2px solid var(--el-color-primary);outline-offset:3px}.record-meta{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--el-text-color-secondary)}.record-meta time{flex:1}.record-card p{margin:12px 0;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.record-open{font-size:12px;color:var(--el-color-primary)}
+.process-timeline{list-style:none;padding:0;margin:8px 0}.process-timeline>li{position:relative;padding:1px 0 1px 30px;border-left:1px solid var(--el-border-color);margin-left:9px}.process-timeline>li:last-child{border-left-color:transparent}.step-number{position:absolute;left:-11px;top:14px;width:21px;height:21px;display:grid;place-items:center;border-radius:50%;background:var(--el-fill-color);font-size:11px;color:var(--el-text-color-secondary)}.process-text{margin:10px 0;padding:10px 14px}.process-text p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;margin:6px 0}
 </style>
