@@ -13,6 +13,7 @@ import Rank from '../views/Rank.vue'
 import MajorHomeworkRank from '../views/MajorHomeworkRank.vue'
 import MajorHomeworkPersonal from '../views/MajorHomeworkPersonal.vue'
 import AIChat from '../views/AIChat.vue'
+import AIMemory from '../views/AIMemory.vue'
 import SteamStatus from '../views/SteamStatus.vue'
 import WatchStage from '../views/WatchStage.vue'
 import AdminConfig from '../views/AdminConfig.vue'
@@ -112,6 +113,7 @@ const routes: RouteRecordRaw[] = [
     component: MajorHomeworkPersonal,
     meta: { requiresAuth: true }
   },
+  { path: '/ai-memory', name: 'AIMemory', component: AIMemory, meta: { requiresAuth: true } },
   {
     path: '/ai-chat',
     name: 'AIChat',

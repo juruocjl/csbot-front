@@ -34,6 +34,10 @@
           <MessageSquare :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">AI 助手</span>
         </router-link>
+        <router-link to="/ai-memory" class="nav-item" @click="mobileMenuOpen = false">
+          <BookOpen :size="20" :stroke-width="2" />
+          <span v-show="!sidebarCollapsed">AI 记忆</span>
+        </router-link>
         <router-link to="/steam-status" class="nav-item" @click="mobileMenuOpen = false">
           <Gamepad2 :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">游戏状态</span>
@@ -87,7 +91,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy, MessageSquare, Gamepad2, ClipboardCheck, Eye, Settings } from 'lucide-vue-next'
+import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy, MessageSquare, Gamepad2, ClipboardCheck, Eye, Settings, BookOpen } from 'lucide-vue-next'
 import { authAPI } from './api'
 
 const route = useRoute()
@@ -122,6 +126,7 @@ const pageTitle = computed<string>(() => {
     '/major-homework': '作业排名',
     '/major-homework/me': '个人作业',
     '/ai-chat': 'AI 聊天记录',
+    '/ai-memory': 'AI 记忆',
     '/steam-status': '游戏状态',
     '/match': '比赛详情',
     '/match-gp': '官匹比赛详情',

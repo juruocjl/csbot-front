@@ -2,6 +2,7 @@
   <main class="ai-page">
     <header class="page-header">
       <div><h2>{{ selected ? '回复详情' : '对话列表' }}</h2><p>{{ selected ? '查看回答、图片和执行过程。' : '本群回复与自己的历史个人对话，按最新记录排序。' }}</p></div>
+      <el-button @click="router.push('/ai-memory')">浏览记忆</el-button>
       <el-button v-if="selected" @click="router.push({path:'/ai-chat'})">返回列表</el-button>
       <el-button v-else :loading="loading" @click="load">刷新</el-button>
     </header>

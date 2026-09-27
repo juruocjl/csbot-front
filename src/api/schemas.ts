@@ -630,3 +630,18 @@ export const AIConversationsSchema = z.object({
   records: z.array(z.object({id:z.string(),request:z.string(),status:z.string(),channel:z.string(),created_at:z.number()})),
   nextCursor: z.number().int().positive().nullable()
 })
+
+export const AIMemoryScopeSchema = z.object({id:z.string(),kind:z.enum(['group','personal']),updated_at:z.number().nullable()})
+export const AIMemoryScopesSchema = z.object({scopes:z.array(AIMemoryScopeSchema),truncated:z.boolean()})
+export const AIMemoryItemSchema = z.object({
+  id:z.string(),type:z.string(),title:z.string(),tags:z.array(z.string()),importance:z.number(),
+  archived:z.boolean(),created_at:z.string(),updated_at:z.string()
+})
+export const AIMemoryListSchema = z.object({
+  items:z.array(AIMemoryItemSchema.extend({preview:z.string()})),types:z.array(z.string()),
+  total:z.number(),nextCursor:z.string().nullable()
+})
+export const AIMemoryDetailSchema = AIMemoryItemSchema.extend({content:z.string(),truncated:z.boolean()})
+export type AIMemoryScope = z.infer<typeof AIMemoryScopeSchema>
+export type AIMemoryItem = z.infer<typeof AIMemoryListSchema>['items'][number]
+export type AIMemoryDetail = z.infer<typeof AIMemoryDetailSchema>
