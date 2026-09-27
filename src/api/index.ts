@@ -263,6 +263,8 @@ export const watchStageAPI = {
 }
 
 export const aiAPI = {
+  supplement: async (chatId: string, prompt: string, conversation: string) =>
+    apiClient.post('/api/ai/supplement', { chatId, prompt, conversation }) as unknown as Promise<{chatId: string; delivery: string}>,
   history: async (conversation = 'default') => {
     const response = await apiClient.post('/api/ai/history', { conversation })
     return schemas.AIPersonalHistorySchema.parse(response)

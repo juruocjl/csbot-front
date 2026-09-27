@@ -545,7 +545,8 @@ export const AIAskResponseSchema = z.object({
 export const AIPersonalHistorySchema = z.object({
   turns: z.array(z.object({
     id: z.string(), request: z.string(), response: z.string().nullable(),
-    status: z.string(), created_at: z.number()
+    status: z.string(), created_at: z.number(),
+    images: z.array(z.object({id:z.string(),caption:z.string()})).default([])
   })),
   limit: z.number()
 })
