@@ -1,6 +1,7 @@
 export type TraceStep =
   | { kind: 'reasoning' | 'text'; attempt: string; block: string; text: string }
   | { kind: 'tool'; id: string }
+  | { kind: 'memory'; text: string }
   | { kind: 'supplement'; text: string; delivery: string }
 export interface Trace {
   timeline: TraceStep[]
@@ -37,6 +38,7 @@ export function applyTrace(t: Trace, e: any) {
     else t.status = e.status
     if (e.thinking_enabled !== undefined) t.thinkingEnabled = e.thinking_enabled
   }
+  if (e.type === 'memory_status') t.timeline.push({kind:'memory',text:e.status==='failed'?'本轮记忆整理失败，未确认保存；后续调用会重试未处理的窗口。':e.count?`记忆整理完成：已处理 ${e.count} 条，可在记忆页查看层级。`:'记忆整理完成：本轮没有需要新增的内容。'})
   if (e.type === 'final') t.response = e.text
   if (e.type === 'supplement') {
     t.supplements.push({ text: e.text, delivery: e.delivery })

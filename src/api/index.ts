@@ -297,7 +297,7 @@ export type AIMemoryItem = schemas.AIMemoryItem
 export type AIMemoryDetail = schemas.AIMemoryDetail
 export const memoryAPI = {
   scopes: async () => schemas.AIMemoryScopesSchema.parse(await apiClient.post('/api/ai/memory/scopes')),
-  list: async (filter:{scope:string;query:string;kind:string;archived:boolean;cursor:string|null}) =>
+  list: async (filter:{scope:string;query:string;kind:string;tier:string;category:string;archived:boolean;cursor:string|null}) =>
     schemas.AIMemoryListSchema.parse(await apiClient.post('/api/ai/memory/list',filter)),
   detail: async (scope:string,id:string) => schemas.AIMemoryDetailSchema.parse(await apiClient.post('/api/ai/memory/detail',{scope,id}))
 }

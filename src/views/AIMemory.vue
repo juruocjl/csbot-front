@@ -1,17 +1,19 @@
 <template>
   <main class="memory-page">
     <header class="memory-header">
-      <div><h2>记忆</h2><p>浏览 AI 已保存的长期信息。群记忆与个人会话记忆分别保存。</p></div>
+      <div><h2>记忆</h2><p>基础知识优先使用，专题与经历资料按需检索。群与个人记忆分别保存。</p></div>
       <div class="header-actions"><el-button @click="router.push('/ai-chat')">对话列表</el-button><el-button :loading="scopeBusy" @click="initialize">刷新</el-button></div>
     </header>
     <form class="filters" @submit.prevent="load(false)">
       <label>记忆范围<select v-model="scope" :disabled="scopeBusy" @change="changeScope"><option v-for="(s,i) in scopes" :key="s.id" :value="s.id">{{ s.kind==='group' ? '本群记忆' : `我的个人会话 ${i} · ${date(s.updated_at)}` }}</option></select></label>
       <label>状态<select v-model="state" @change="changeScope"><option value="active">有效记忆</option><option value="archived">已归档</option></select></label>
-      <label>类型<select v-model="kind" @change="load(false)"><option value="">全部类型</option><option v-for="t in types" :key="t" :value="t">{{ typeLabel(t) }}</option></select></label>
+      <label>层级<select v-model="tier" @change="category='';load(false)"><option value="">全部层级</option><option value="foundation">基础知识</option><option value="topic">专题知识</option><option value="episode">经历与资料</option><option value="legacy">旧资料 · 待整理</option></select></label>
+      <label v-if="tier==='foundation'">基础分类<select v-model="category" @change="load(false)"><option value="">全部基础分类</option><option value="alias">人物称呼</option><option value="glossary">群内词典</option><option value="style">交流习惯</option><option value="agreement">长期约定</option></select></label>
+      <label v-if="tier==='legacy'">原始类型<select v-model="kind" @change="load(false)"><option value="">全部类型</option><option v-for="t in types" :key="t" :value="t">{{ typeLabel(t) }}</option></select></label>
       <label class="search">搜索<input v-model="query" maxlength="200" placeholder="搜索标题、正文或标签" /></label>
       <el-button native-type="submit" :loading="busy" :disabled="!scope">搜索</el-button>
     </form>
-    <p class="scope-note">{{ scopes.find(s=>s.id===scope)?.kind==='personal' ? '仅你本人可见；这些记忆不会写入群记忆。' : '本群成员可见；仅从被叫到后的对话提炼。' }} 此页只读，已遗忘内容不展示。</p>
+    <p class="scope-note">{{ scopes.find(s=>s.id===scope)?.kind==='personal' ? '仅你本人可见；这些记忆不会写入群记忆。' : '本群成员可见；仅从被叫到后的对话提炼。' }} 基础知识中的交流习惯与约定优先加载，人物称呼和词典按话题加载；旧资料保留检索，不自动提升。此页只读，已遗忘内容不展示。</p>
     <p v-if="scopeTruncated" class="notice">个人会话较多，范围列表显示最近 200 个会话。</p>
     <p v-if="error" class="error" role="alert">{{ error }}</p>
     <p v-if="busy && !items.length" class="empty" role="status">正在读取记忆…</p>
@@ -20,7 +22,7 @@
       <p class="count">匹配 {{ total }} 条 · 已显示 {{ items.length }} 条</p>
       <section class="memory-list" aria-label="记忆列表">
         <button v-for="item in items" :key="item.id" class="memory-card" @click="showDetail(item.id)">
-          <div class="metadata"><span>{{ typeLabel(item.type) }}</span><time>{{ date(item.updated_at) }}</time><span v-if="item.archived">已归档</span></div>
+          <div class="metadata"><span>{{ layerLabel(item.tier,item.category) }}</span><time>{{ date(item.updated_at) }}</time><span v-if="item.archived">已归档</span></div>
           <h3>{{ item.title || '无标题记忆' }}</h3><p class="preview">{{ item.preview }}</p>
           <div v-if="item.tags.length" class="tags"><span v-for="tag in item.tags" :key="tag">{{ tag }}</span></div>
           <span class="open-detail">查看全文 →</span>
@@ -32,9 +34,11 @@
       <p v-if="detailBusy" role="status">正在读取…</p><p v-if="detailError" class="error" role="alert">{{ detailError }}</p>
       <article v-if="detail">
         <h2 class="detail-title">{{ detail.title }}</h2>
-        <div class="metadata"><span>{{ typeLabel(detail.type) }}</span><span>{{ detail.archived ? '已归档' : '有效记忆' }}</span><span>重要程度 {{ detail.importance }}</span></div>
+        <div class="metadata"><span>{{ layerLabel(detail.tier,detail.category) }}</span><span>{{ detail.archived ? '已归档' : '有效记忆' }}</span><span>重要程度 {{ detail.importance }}</span></div>
         <p class="detail-dates">创建于 {{ date(detail.created_at) }} · 更新于 {{ date(detail.updated_at) }}</p>
         <div class="tags"><span v-for="tag in detail.tags" :key="tag">{{ tag }}</span></div>
+        <p v-if="detail.subject">对象：{{ detail.subject }}</p>
+        <details v-if="detail.evidence.length"><summary>确认依据（{{ detail.evidence.length }}）</summary><blockquote v-for="e in detail.evidence" :key="e.id+e.quote">{{ e.quote }}</blockquote></details>
         <pre class="memory-content">{{ detail.content }}</pre>
         <p v-if="detail.truncated" class="notice">这条记忆内容较长，当前显示前 131,072 个字符。</p>
       </article>
@@ -47,12 +51,13 @@ import { useRouter } from 'vue-router'
 import { memoryAPI, type AIMemoryScope, type AIMemoryItem, type AIMemoryDetail } from '../api'
 const router=useRouter()
 const scopes=ref<AIMemoryScope[]>([]),scope=ref(''),scopeBusy=ref(false),scopeTruncated=ref(false)
-const query=ref(''),kind=ref(''),state=ref('active'),types=ref<string[]>([])
+const query=ref(''),kind=ref(''),tier=ref('foundation'),category=ref(''),state=ref('active'),types=ref<string[]>([])
 const items=ref<AIMemoryItem[]>([]),cursor=ref<string|null>(null),total=ref(0),busy=ref(false),error=ref('')
 const detail=ref<AIMemoryDetail|null>(null),detailOpen=ref(false),detailBusy=ref(false),detailError=ref('')
 let listVersion=0,detailVersion=0,scopeVersion=0
-let applied={scope:'',query:'',kind:'',archived:false}
+let applied={scope:'',query:'',kind:'',tier:'',category:'',archived:false}
 const message=(e:any)=>e.response?.data?.detail || '记忆暂时无法读取，请重试。'
+function layerLabel(t:string,c:string){return ({alias:'人物称呼',glossary:'群内词典',style:'交流习惯',agreement:'长期约定'} as Record<string,string>)[c] || ({foundation:'基础知识',topic:'专题知识',episode:'经历与资料',legacy:'旧资料 · 待整理'} as Record<string,string>)[t] || t}
 function typeLabel(t:string) { return ({fact:'事实',preference:'偏好',history:'经历与历史',identity:'身份与称呼',rule:'约定',skill:'技能',knowledge:'知识',note:'笔记',summary:'摘要',profile:'个人资料',document:'文档'} as Record<string,string>)[t] || t }
 function date(value:string|number|null) { if(value===null)return '';const d=new Date(typeof value==='number'?value*1000:value);return Number.isNaN(d.getTime())?'时间未知':new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(d) }
 async function initialize() {
@@ -65,7 +70,7 @@ function changeScope(){kind.value='';types.value=[];closeDetail();detailOpen.val
 async function load(more:boolean) {
   if(!scope.value || (more && busy.value))return
   const version=++listVersion;busy.value=true;error.value=''
-  if(!more){items.value=[];cursor.value=null;total.value=0;applied={scope:scope.value,query:query.value.trim(),kind:kind.value,archived:state.value==='archived'}}
+  if(!more){items.value=[];cursor.value=null;total.value=0;applied={scope:scope.value,query:query.value.trim(),kind:tier.value==='legacy'?kind.value:'',tier:tier.value,category:category.value,archived:state.value==='archived'}}
   try { const data=await memoryAPI.list({...applied,cursor:more?cursor.value:null});if(version!==listVersion)return
     items.value=more?[...items.value,...data.items.filter(x=>!items.value.some(y=>y.id===x.id))]:data.items;cursor.value=data.nextCursor;types.value=data.types;total.value=data.total
   }catch(e){if(version===listVersion)error.value=message(e)}finally{if(version===listVersion)busy.value=false}

@@ -634,6 +634,7 @@ export const AIConversationsSchema = z.object({
 export const AIMemoryScopeSchema = z.object({id:z.string(),kind:z.enum(['group','personal']),updated_at:z.number().nullable()})
 export const AIMemoryScopesSchema = z.object({scopes:z.array(AIMemoryScopeSchema),truncated:z.boolean()})
 export const AIMemoryItemSchema = z.object({
+  tier:z.string().default('legacy'),category:z.string().default(''),subject:z.string().default(''),evidence:z.array(z.object({id:z.string(),kind:z.string(),quote:z.string()})).default([]),
   id:z.string(),type:z.string(),title:z.string(),tags:z.array(z.string()),importance:z.number(),
   archived:z.boolean(),created_at:z.string(),updated_at:z.string()
 })

@@ -37,6 +37,7 @@
                   <summary><span>{{ toolLabel(turn.trace.tools[step.id].name) }}</span><span>{{ turn.trace.tools[step.id].state === 'running' ? (finished(turn) ? '未完成' : '执行中') : turn.trace.tools[step.id].state === 'failed' ? '失败' : '完成' }}</span><small v-if="turn.trace.tools[step.id].end">{{ ((turn.trace.tools[step.id].end!-turn.trace.tools[step.id].start)/1000).toFixed(1) }} 秒</small></summary>
                   <h5>输入</h5><pre>{{ turn.trace.tools[step.id].args || '无参数' }}</pre><h5>结果</h5><pre>{{ turn.trace.tools[step.id].result || (finished(turn) ? '没有返回结果' : '等待结果…') }}</pre>
                 </details>
+                <div v-else-if="step.kind === 'memory'" class="notice">{{ step.text }}</div>
                 <div v-else-if="step.kind === 'supplement'" class="supplement">补充：{{ step.text }} <small>{{ step.delivery === 'unknown' ? '投递待确认，未自动重发' : step.delivery === 'queued' ? '已排到下一轮' : '已插入' }}</small></div>
               </li>
             </ol>
