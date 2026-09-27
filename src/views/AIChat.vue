@@ -2,7 +2,7 @@
   <main class="ai-page">
     <header class="page-header">
       <div><h2>{{ groupView ? '群聊回复过程' : '和 AI 聊聊' }}</h2><p>{{ groupView ? '本群成员可查看这轮回复与执行过程。' : '个人会话独立保存，不写入 QQ 群记忆。' }}</p></div>
-      <el-button @click="newConversation">新对话</el-button>
+      <el-button :disabled="busy" @click="newConversation">新对话</el-button>
     </header>
     <details class="record-search"><summary>查看指定回复记录</summary><div class="row"><el-input v-model="lookup" placeholder="回复记录编号" @keyup.enter="openRecord"/><el-button @click="openRecord">查看</el-button></div></details>
     <p v-if="error" class="notice error">{{ error }}</p>
