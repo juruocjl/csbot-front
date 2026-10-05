@@ -539,6 +539,10 @@ export const AIRecordIdsResponseSchema = z.object({
 })
 
 export const AIResolvedChatSchema = z.object({chatId: z.string().uuid()})
+export const AIContextSchema = z.object({
+  entries: z.array(z.object({id: z.string(), title: z.string(), text: z.string(), time: z.number()})),
+  origin: z.enum(['captured', 'native_archive', 'missing']), truncated: z.boolean()
+})
 
 export const AIAskResponseSchema = z.object({
   chatId: z.string()

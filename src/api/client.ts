@@ -1,5 +1,7 @@
 import axios, { AxiosInstance } from 'axios'
 import Cookies from 'js-cookie'
+import { beginPageMetadata, finishPageMetadata } from '../utils/pageMetadata'
+const metadataTickets = new WeakMap<object, ReturnType<typeof beginPageMetadata>>()
 
 // 创建 axios 实例
 const apiClient: AxiosInstance = axios.create({
@@ -13,6 +15,7 @@ const apiClient: AxiosInstance = axios.create({
 // 请求拦截器
 apiClient.interceptors.request.use(
   (config) => {
+    metadataTickets.set(config, beginPageMetadata(config.url || '', config.data))
     // 可以在这里添加 token 等认证信息
     const token = Cookies.get('token')
     if (token) {
@@ -30,9 +33,11 @@ apiClient.interceptors.request.use(
 // 响应拦截器
 apiClient.interceptors.response.use(
   (response) => {
+    finishPageMetadata(metadataTickets.get(response.config) || null, response.data)
     return response.data
   },
   (error) => {
+    if (error.config) finishPageMetadata(metadataTickets.get(error.config) || null, undefined, true)
     if (error.response) {
       // 处理不同的错误状态码
       switch (error.response.status) {

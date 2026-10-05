@@ -264,6 +264,7 @@ export const watchStageAPI = {
 
 export interface AIConversationRecord { id: string; request: string; status: string; channel: string; created_at: number }
 export const aiAPI = {
+  context: async (chatId: string) => schemas.AIContextSchema.parse(await apiClient.post('/api/ai/context', { chatId })),
   resolve: async (chatId: string): Promise<{chatId: string}> => {
     const response = await apiClient.post('/api/ai/resolve', { chatId })
     return schemas.AIResolvedChatSchema.parse(response)

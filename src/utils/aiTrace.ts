@@ -10,9 +10,10 @@ export interface Trace {
   tools: Record<string, { name: string; args: string; result: string; state: string; start: number; end?: number }>
   images: Array<{ id: string; caption: string; url?: string; thumbnail?: boolean }>
   supplements: Array<{ text: string; delivery: string }>
+  contexts: Array<{ id: string; title: string; text: string; time: number }>
   status: string; response: string; request: string; channel: string; notice: string; thinkingEnabled?: boolean
 }
-export const newTrace = (): Trace => ({ timeline: [], streamedBlocks: {}, attempts: {}, tools: {}, images: [], supplements: [], status: 'queued', response: '', request: '', channel: '', notice: '' })
+export const newTrace = (): Trace => ({ timeline: [], streamedBlocks: {}, attempts: {}, tools: {}, images: [], supplements: [], contexts: [], status: 'queued', response: '', request: '', channel: '', notice: '' })
 // Preserve arrival order. Only adjacent deltas from the same block coalesce;
 // a tool call stays where it started even when its result arrives later.
 function appendText(t: Trace, kind: 'reasoning' | 'text', attempt: string, block: string, text: string) {
@@ -32,6 +33,12 @@ const argumentsText = (name: string, value: any) => {
   return printable(value)
 }
 export function applyTrace(t: Trace, e: any) {
+  if (e.type === 'context') {
+    const old = t.contexts.find(item => item.id === e.id)
+    const item = { id: e.id, title: e.title, text: e.text, time: e.time }
+    if (old) Object.assign(old, item)
+    else t.contexts.push(item)
+  }
   if (e.type === 'request') { t.request = e.text; t.channel = e.channel }
   if (e.type === 'status') {
     if (e.status === 'trace_limit') t.notice = e.message
