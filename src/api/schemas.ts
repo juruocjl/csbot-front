@@ -538,6 +538,8 @@ export const AIRecordIdsResponseSchema = z.object({
   status: z.string().optional()
 })
 
+export const AIResolvedChatSchema = z.object({chatId: z.string().uuid()})
+
 export const AIAskResponseSchema = z.object({
   chatId: z.string()
 })

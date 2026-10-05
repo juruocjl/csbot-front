@@ -56,6 +56,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { aiAPI, type AIConversationRecord } from '../api'
 import { streamAI, generatedImage } from '../api/aiStream'
 import { applyTrace, newTrace, type Trace } from '../utils/aiTrace'
+import { resolveAIChatId } from '../utils/aiChatId'
 interface Turn { id: string; trace: Trace; cursor: number; loaded: boolean; connection: string }
 const route=useRoute(),router=useRouter()
 const selected=computed(()=>typeof route.query.chatId==='string' ? route.query.chatId : '')
@@ -112,9 +113,19 @@ async function loadRecords(more=false) {
 async function load() {
   stop();const current=generation;turns.value=[];records.value=[];nextCursor.value=null;listBusy.value=false;error.value='';loading.value=true
   try {
-    if(selected.value){const t=makeTurn(selected.value);turns.value=[t];void connect(t)}
+    if(selected.value){
+      const id=selected.value
+      const resolved=await resolveAIChatId(id,aiAPI.resolve)
+      if(current!==generation)return
+      if(resolved!==id){
+        await router.replace({path:route.path,query:{...route.query,chatId:resolved},hash:route.hash})
+        return
+      }
+      const t=makeTurn(resolved);turns.value=[t];void connect(t)
+    }
     else await loadRecords()
-  }finally{if(current===generation)loading.value=false}
+  }catch(e:any){if(current===generation)error.value=e.response?.status===404 ? '无权查看这条回复，或记录不存在。' : e.message || '对话链接暂时无法解析。'}
+  finally{if(current===generation)loading.value=false}
 }
 watch(()=>route.query.chatId,()=>void load(),{immediate:true})
 onUnmounted(stop)
