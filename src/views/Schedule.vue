@@ -20,7 +20,7 @@
       <h2>关注队伍</h2><p>赛果会在登录账号绑定的群里发送，并 @你。</p>
       <form class="search-form" @submit.prevent="search"><el-input v-model="query" placeholder="队名或队伍 ID，如 TYLOO" maxlength="150" /><el-button native-type="submit" :loading="searching">搜索</el-button></form>
       <p v-if="searchDone && !choices.length">未找到队伍。队伍目录会随赛事发现更新，也可在群里用完整的 5E 队伍 ID 关注。</p>
-      <div v-for="team in choices" :key="team.id" class="follow-row"><div><img v-if="team.logo" :src="team.logo" alt="" /><strong>{{ team.name }}</strong><small>{{ team.external_ids?.join(' · ') }}</small></div><el-button :disabled="busy" @click="setFollow(team, true)">关注并开启提醒</el-button></div>
+      <div v-for="team in choices" :key="team.id" class="follow-row"><div><img v-if="team.logo" :src="teamLogoUrl(team.logo)" alt="" /><strong>{{ team.name }}</strong><small>{{ team.external_ids?.join(' · ') }}</small></div><el-button :disabled="busy" @click="setFollow(team, true)">关注并开启提醒</el-button></div>
       <h3>我的关注</h3><p v-if="!myTeams.length">暂无关注队伍</p>
       <div v-for="team in myTeams" :key="team.id" class="follow-row"><div><strong>{{ team.name }}</strong><small>提醒群：{{ team.groups?.join('、') || '未开启' }}</small></div><el-button :disabled="busy" @click="setFollow(team, false)">取消关注</el-button></div>
     </div>
@@ -34,7 +34,7 @@
         <h2>{{ group.label }} <span>{{ group.matches.length }} 场</span></h2>
         <article v-for="match in group.matches" :key="match.id" class="match-row" :class="{ live: match.status === 'live' }">
           <div class="match-time"><span v-if="match.status === 'live'" class="live-label">● LIVE</span><strong v-else>{{ match.start_ts ? clock(match.start_ts) : '时间待定' }}</strong><small>{{ match.status === 'unknown' ? '状态待确认' : match.status === 'live' ? '正在进行' : overdue(match) ? '等待开赛' : '即将开始' }}</small></div>
-          <div class="opponents"><div class="team first"><span :title="match.team1.name">{{ match.team1.name }}</span><img v-if="match.team1.logo" :src="match.team1.logo" alt="" /></div><div class="score"><strong>{{ match.status === 'live' ? `${match.score1 ?? '—'} : ${match.score2 ?? '—'}` : 'VS' }}</strong><small>{{ match.format ? `BO${match.format}` : '赛制待定' }}</small></div><div class="team"><img v-if="match.team2.logo" :src="match.team2.logo" alt="" /><span :title="match.team2.name">{{ match.team2.name }}</span></div></div>
+          <div class="opponents"><div class="team first"><span :title="match.team1.name">{{ match.team1.name }}</span><img v-if="match.team1.logo" :src="teamLogoUrl(match.team1.logo)" alt="" /></div><div class="score"><strong>{{ match.status === 'live' ? `${match.score1 ?? '—'} : ${match.score2 ?? '—'}` : 'VS' }}</strong><small>{{ match.format ? `BO${match.format}` : '赛制待定' }}</small></div><div class="team"><img v-if="match.team2.logo" :src="teamLogoUrl(match.team2.logo)" alt="" /><span :title="match.team2.name">{{ match.team2.name }}</span></div></div>
           <div class="stars" :title="match.stars == null ? '星级待定' : `比赛星级：${match.stars}/5`" :aria-label="match.stars == null ? '星级待定' : `${match.stars} 星比赛`"><template v-if="match.stars != null"><span v-for="n in 5" :key="n" :class="{ filled: n <= match.stars }">★</span></template><small v-else>星级待定</small></div>
           <div class="event"><strong :title="match.event_name">{{ match.event_name }}</strong><small :title="match.stage">{{ match.stage }}</small><small>更新 {{ clock(match.updated_at) }}</small></div>
           <div v-if="match.status === 'live' && match.maps.length" class="maps"><span v-for="(map, i) in liveMapsFirst(match)" :key="i" :class="{ 'map-live': map.status === 'live' }">{{ map.name }} {{ map.score1 ?? '—' }}:{{ map.score2 ?? '—' }}{{ map.status === 'live' ? ' · 进行中' : '' }}</span></div>
@@ -51,6 +51,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { authAPI } from '../api'
 import { scheduleAPI, type ScheduleMatch, type ScheduleResponse, type ScheduleTeam } from '../api/schedule'
+import { teamLogoUrl } from '../utils/teamLogo'
 
 const route = useRoute(), router = useRouter()
 const capture = !!window.__CSBOT_CAPTURE_METADATA__
