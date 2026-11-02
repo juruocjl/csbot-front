@@ -22,6 +22,7 @@ export interface ScheduleMatch {
   start_ts: number
   updated_at: number
   format: number
+  stars: number | null
   status: 'live' | 'upcoming' | 'finished' | 'unknown'
   team1: MatchTeam
   team2: MatchTeam
