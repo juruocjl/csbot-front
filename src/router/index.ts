@@ -17,6 +17,7 @@ import AIMemory from '../views/AIMemory.vue'
 import SteamStatus from '../views/SteamStatus.vue'
 import WatchStage from '../views/WatchStage.vue'
 import AdminConfig from '../views/AdminConfig.vue'
+import Schedule from '../views/Schedule.vue'
 import { ElMessage } from 'element-plus'
 import Cookies from 'js-cookie'
 import { authAPI } from '../api'
@@ -29,6 +30,8 @@ declare module 'vue-router' {
 }
 
 const routes: RouteRecordRaw[] = [
+  { path: '/schedule', name: 'Schedule', component: Schedule, meta: { requiresAuth: true } },
+  { path: '/schedule/user/:uid(\\d+)', name: 'UserSchedule', component: Schedule, meta: { requiresAuth: true } },
   {
     path: '/login',
     name: 'Login',

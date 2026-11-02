@@ -35,3 +35,12 @@ test('context is replayable and deduplicated, without pretending to be a tool ca
   assert.equal(trace.timeline.length,0)
   assert.equal(Object.keys(trace.tools).length,0)
 })
+test('schedule captures complete fixed identities but excludes follow mutations',()=>{
+  globalThis.location={pathname:'/schedule/user/111',search:'?page=2'}
+  const ticket=beginPageMetadata('/api/schedule',{uid:'111',page:2,eventId:1})
+  const payload={matches:[{id:'csgo_mc_1',team1:{team_id:'fixed-team',external_id:'hltv_team_1'},maps:[{name:'Nuke',score1:13,score2:9}]}]}
+  finishPageMetadata(ticket,payload)
+  assert.deepEqual(window.__CSBOT_PAGE_METADATA__.responses[0].data,payload)
+  assert.equal(beginPageMetadata('/api/schedule/follow',{teamId:'fixed-team',enabled:true}),null)
+  assert.equal(beginPageMetadata('/api/schedule/follows',{}),null)
+})

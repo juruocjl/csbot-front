@@ -30,6 +30,10 @@
           <ClipboardCheck :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">作业排名</span>
         </router-link>
+        <router-link to="/schedule" class="nav-item" @click="mobileMenuOpen = false">
+          <CalendarDays :size="20" :stroke-width="2" />
+          <span v-show="!sidebarCollapsed">赛程</span>
+        </router-link>
         <router-link to="/ai-chat" class="nav-item" @click="mobileMenuOpen = false">
           <MessageSquare :size="20" :stroke-width="2" />
           <span v-show="!sidebarCollapsed">AI 助手</span>
@@ -91,7 +95,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy, MessageSquare, Gamepad2, ClipboardCheck, Eye, Settings, BookOpen } from 'lucide-vue-next'
+import { Home, BarChart3, ChevronLeft, ChevronRight, LogOut, Menu, History, Layers, Share2, PiggyBank, Trophy, MessageSquare, Gamepad2, ClipboardCheck, Eye, Settings, BookOpen, CalendarDays } from 'lucide-vue-next'
 import { authAPI } from './api'
 
 const route = useRoute()
@@ -112,11 +116,13 @@ const hideSidebar = computed<boolean>(() => {
 })
 
 const pageTitle = computed<string>(() => {
+  if (route.path.startsWith('/schedule/user/')) return '个人赛程'
   if (route.path.startsWith('/major-homework/user/')) {
     return '作业详情'
   }
   const titles: Record<string, string> = {
     '/': '主页',
+    '/schedule': '赛程',
     '/data': '数据',
     '/history': '历史',
     '/history-gp': '官匹历史',

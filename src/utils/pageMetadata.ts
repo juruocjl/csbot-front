@@ -4,7 +4,7 @@ const endpoints = new Set([
   '/api/match/history', '/api/match/historygp', '/api/match/historyfaceit', '/api/match/historyall',
   '/api/player/base', '/api/player/detail', '/api/rank', '/api/steam/status',
   '/api/watch-stage/snapshot', '/api/major/homework/rank', '/api/major/homework/personal',
-  '/api/config/time', '/api/config/rank', '/api/config/users'
+  '/api/config/time', '/api/config/rank', '/api/config/users', '/api/schedule'
 ])
 const parameters = new Set(['matchId', 'steamId', 'timeType', 'page', 'rankName', 'uid', 'seasonId', 'stage', 'eventId'])
 interface ResponseMetadata { api: string; params: Record<string, unknown>; data: unknown }
