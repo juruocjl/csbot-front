@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { newTrace, applyTrace } from '../src/utils/aiTrace.ts'
+import { newTrace, applyTrace, toolDisplayLabel } from '../src/utils/aiTrace.ts'
 
 const reasoning = (attempt, text) => ({ type: 'reasoning_delta', attempt, text })
 const call = id => ({ type: 'tool/call', time: 1000, data: { call: { id, name: 'execute_python', arguments: { code: 'print(1)' } } } })
@@ -54,4 +54,20 @@ test('supplements and incomplete historical tool results keep their recorded pos
   ;[reasoning('a','开始'),{type:'supplement',text:'补充条件',delivery:'accepted'},result('legacy')].forEach(e=>applyTrace(t,e))
   assert.deepEqual(t.timeline.map(s=>s.kind),['reasoning','supplement','tool'])
   assert.equal(t.tools.legacy.result,'1')
+})
+
+test('image tool labels and generated image events render through the shared trace', () => {
+  assert.equal(toolDisplayLabel('generate_image'), '生成图片')
+  assert.equal(toolDisplayLabel('execute_python'), '运行分析脚本')
+  assert.equal(toolDisplayLabel('unknown_tool'), 'unknown_tool')
+  assert.equal(toolDisplayLabel(''), '调用工具')
+
+  const t = newTrace()
+  applyTrace(t, { type: 'tool/call', time: 1, data: { call: { id: 'img', name: 'generate_image', arguments: { prompt: '一只蓝鲸', size: '1024x1024' } } } })
+  applyTrace(t, { type: 'tool/result', time: 2, data: { toolCallId: 'img', content: [{ type: 'text', text: '{"ok":true}' }] } })
+  applyTrace(t, { type: 'image', id: 'i1', caption: '蓝鲸' })
+  assert.deepEqual(t.timeline.map(s => s.kind), ['tool'])
+  assert.equal(t.tools.img.name, 'generate_image')
+  assert.equal(t.tools.img.state, 'done')
+  assert.deepEqual(t.images, [{ id: 'i1', caption: '蓝鲸' }])
 })

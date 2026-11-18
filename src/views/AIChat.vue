@@ -46,7 +46,7 @@
                   <p v-if="turn.trace.attempts[step.attempt]?.state === 'abandoned'" class="muted">这次模型尝试中断，后续内容以重试结果为准。</p>
                 </div>
                 <details v-else-if="step.kind === 'tool'" class="tool-card">
-                  <summary><span>{{ toolLabel(turn.trace.tools[step.id].name) }}</span><span>{{ turn.trace.tools[step.id].state === 'running' ? (finished(turn) ? '未完成' : '执行中') : turn.trace.tools[step.id].state === 'failed' ? '失败' : '完成' }}</span><small v-if="turn.trace.tools[step.id].end">{{ ((turn.trace.tools[step.id].end!-turn.trace.tools[step.id].start)/1000).toFixed(1) }} 秒</small></summary>
+                  <summary><span>{{ toolDisplayLabel(turn.trace.tools[step.id].name) }}</span><span>{{ turn.trace.tools[step.id].state === 'running' ? (finished(turn) ? '未完成' : '执行中') : turn.trace.tools[step.id].state === 'failed' ? '失败' : '完成' }}</span><small v-if="turn.trace.tools[step.id].end">{{ ((turn.trace.tools[step.id].end!-turn.trace.tools[step.id].start)/1000).toFixed(1) }} 秒</small></summary>
                   <h5>输入</h5><pre>{{ turn.trace.tools[step.id].args || '无参数' }}</pre><h5>结果</h5><pre>{{ turn.trace.tools[step.id].result || (finished(turn) ? '没有返回结果' : '等待结果…') }}</pre>
                 </details>
                 <div v-else-if="step.kind === 'memory'" class="notice">{{ step.text }}</div>
@@ -56,7 +56,7 @@
             <p v-if="!turn.trace.timeline.length" class="muted">{{ finished(turn) ? '这轮没有可用的详细过程；旧记录不会补造思考内容。' : '等待模型输出…' }}</p>
           </details>
           <div class="answer">{{ turn.trace.response || liveText(turn) || (turn.trace.status === 'queued' ? '已排队，前面的请求结束后开始。' : turn.trace.status === 'interrupted' ? '这轮中断了，已收到的内容保留在这里。' : '正在处理…') }}</div>
-          <figure v-for="image in turn.trace.images" :key="image.id"><a v-if="image.url" :href="image.url" target="_blank" rel="noopener"><img :src="image.url" :alt="image.caption || '生成图表'" /></a><p v-else>图片加载中…</p><figcaption>{{ image.caption }}<span v-if="image.thumbnail"> · 原图已淘汰，当前为缩略图</span></figcaption></figure>
+          <figure v-for="image in turn.trace.images" :key="image.id"><a v-if="image.url" :href="image.url" target="_blank" rel="noopener"><img :src="image.url" :alt="image.caption || '生成图片'" /></a><p v-else>图片加载中…</p><figcaption>{{ image.caption }}<span v-if="image.thumbnail"> · 原图已淘汰，当前为缩略图</span></figcaption></figure>
         </div>
       </article>
     </section>
@@ -67,7 +67,7 @@ import { computed, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { aiAPI, type AIConversationRecord } from '../api'
 import { streamAI, generatedImage } from '../api/aiStream'
-import { applyTrace, newTrace, type Trace } from '../utils/aiTrace'
+import { applyTrace, newTrace, toolDisplayLabel, type Trace } from '../utils/aiTrace'
 import { resolveAIChatId } from '../utils/aiChatId'
 interface Turn { id: string; trace: Trace; cursor: number; loaded: boolean; connection: string; contextLoaded: boolean; contextBusy: boolean; contextError: string; contextOrigin: string; contextTruncated: boolean }
 const route=useRoute(),router=useRouter()
@@ -80,7 +80,6 @@ const imageLoads=new Set<string>()
 let generation=0
 const finished=(t:Turn)=>['completed','interrupted'].includes(t.trace.status)
 function statusLabel(s:string) { return ({queued:'排队中',running:'正在回复',completed:'已完成',interrupted:'已中断'} as Record<string,string>)[s] || s }
-function toolLabel(s:string) { return ({execute_python:'运行分析脚本',read:'读取资料',read_image:'查看图片',memory_search:'检索记忆',memory_save:'保存记忆',memory_forget:'删除记忆'} as Record<string,string>)[s] || s || '调用工具' }
 function liveText(t:Turn) { return Object.values(t.trace.attempts).filter(a=>a.state!=='abandoned').map(a=>a.text).filter(Boolean).join('\n\n') }
 function processLabel(t:Turn) { const tools=Object.values(t.trace.tools); const reasoning=Object.values(t.trace.attempts).some(a=>a.reasoning); return `${finished(t)?'查看过程':'实时过程'}${reasoning?' · 思考':''}${tools.length?` · ${tools.length} 次工具调用`:''}` }
 function makeTurn(id:string) { return reactive({id,trace:newTrace(),cursor:0,loaded:false,connection:'',contextLoaded:false,contextBusy:false,contextError:'',contextOrigin:'',contextTruncated:false}) as Turn }

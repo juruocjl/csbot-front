@@ -14,6 +14,20 @@ export interface Trace {
   status: string; response: string; request: string; channel: string; notice: string; thinkingEnabled?: boolean
 }
 export const newTrace = (): Trace => ({ timeline: [], streamedBlocks: {}, attempts: {}, tools: {}, images: [], supplements: [], contexts: [], status: 'queued', response: '', request: '', channel: '', notice: '' })
+export function toolDisplayLabel(name: string): string {
+  return ({
+    execute_python: '运行分析脚本',
+    generate_image: '生成图片',
+    read: '读取资料',
+    read_image: '查看图片',
+    web_search: '搜索网页',
+    web_fetch: '读取网页',
+    web_fetch_proxy: '代理读取网页',
+    memory_search: '检索记忆',
+    memory_save: '保存记忆',
+    memory_forget: '删除记忆',
+  } as Record<string, string>)[name] || name || '调用工具'
+}
 // Preserve arrival order. Only adjacent deltas from the same block coalesce;
 // a tool call stays where it started even when its result arrives later.
 function appendText(t: Trace, kind: 'reasoning' | 'text', attempt: string, block: string, text: string) {

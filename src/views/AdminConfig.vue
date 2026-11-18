@@ -39,7 +39,7 @@
         请输入 JSON 对象，例如 {"中国（北京）":"Asia/Shanghai"}
       </p>
       <p v-else-if="item.valueType === 'string'" class="format-hint">
-        请输入 JSON 字符串，例如 "model-name"
+        请输入 JSON 字符串，例如 "gpt-6.2-sol"
       </p>
 
       <div class="card-footer">
