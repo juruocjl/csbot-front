@@ -46,7 +46,7 @@
                   <p v-if="turn.trace.attempts[step.attempt]?.state === 'abandoned'" class="muted">这次模型尝试中断，后续内容以重试结果为准。</p>
                 </div>
                 <details v-else-if="step.kind === 'tool'" class="tool-card">
-                  <summary><span>{{ toolDisplayLabel(turn.trace.tools[step.id].name) }}</span><span>{{ turn.trace.tools[step.id].state === 'running' ? (finished(turn) ? '未完成' : '执行中') : turn.trace.tools[step.id].state === 'failed' ? '失败' : '完成' }}</span><small v-if="turn.trace.tools[step.id].end">{{ ((turn.trace.tools[step.id].end!-turn.trace.tools[step.id].start)/1000).toFixed(1) }} 秒</small></summary>
+                  <summary><span>{{ toolDisplayLabel(turn.trace.tools[step.id].name, turn.trace.tools[step.id].args) }}</span><span>{{ turn.trace.tools[step.id].state === 'running' ? (finished(turn) ? '未完成' : '执行中') : turn.trace.tools[step.id].state === 'failed' ? '失败' : '完成' }}</span><small v-if="turn.trace.tools[step.id].end">{{ ((turn.trace.tools[step.id].end!-turn.trace.tools[step.id].start)/1000).toFixed(1) }} 秒</small></summary>
                   <h5>输入</h5><pre>{{ turn.trace.tools[step.id].args || '无参数' }}</pre><h5>结果</h5><pre>{{ turn.trace.tools[step.id].result || (finished(turn) ? '没有返回结果' : '等待结果…') }}</pre>
                 </details>
                 <div v-else-if="step.kind === 'memory'" class="notice">{{ step.text }}</div>

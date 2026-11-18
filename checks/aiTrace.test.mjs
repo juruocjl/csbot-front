@@ -71,3 +71,17 @@ test('image tool labels and generated image events render through the shared tra
   assert.equal(t.tools.img.state, 'done')
   assert.deepEqual(t.images, [{ id: 'i1', caption: '蓝鲸' }])
 })
+
+test('reference-edit image calls get their own label and text-to-image stays unchanged', () => {
+  assert.equal(toolDisplayLabel('generate_image', JSON.stringify({ prompt: '一只蓝鲸' })), '生成图片')
+  assert.equal(toolDisplayLabel('generate_image', JSON.stringify({ prompt: '改一下', image_paths: [] })), '生成图片')
+  assert.equal(toolDisplayLabel('generate_image', JSON.stringify({ prompt: '改一下', image_paths: ['/tmp/ref.png'] })), '生成图片（参考改图）')
+  assert.equal(toolDisplayLabel('generate_image', JSON.stringify({ prompt: '两图融合', image_paths: ['/tmp/a.png', '/tmp/b.png'] })), '生成图片（参考改图）')
+  assert.equal(toolDisplayLabel('generate_image', 'not-json'), '生成图片')
+  assert.equal(toolDisplayLabel('generate_image', ''), '生成图片')
+  assert.equal(toolDisplayLabel('unknown_tool', JSON.stringify({ image_paths: ['/tmp/ref.png'] })), 'unknown_tool')
+
+  const t = newTrace()
+  applyTrace(t, { type: 'tool/call', time: 1, data: { call: { id: 'edit', name: 'generate_image', arguments: { prompt: '改成水彩风', image_paths: ['/tmp/ref.png'] } } } })
+  assert.equal(toolDisplayLabel(t.tools.edit.name, t.tools.edit.args), '生成图片（参考改图）')
+})

@@ -14,7 +14,13 @@ export interface Trace {
   status: string; response: string; request: string; channel: string; notice: string; thinkingEnabled?: boolean
 }
 export const newTrace = (): Trace => ({ timeline: [], streamedBlocks: {}, attempts: {}, tools: {}, images: [], supplements: [], contexts: [], status: 'queued', response: '', request: '', channel: '', notice: '' })
-export function toolDisplayLabel(name: string): string {
+export function toolDisplayLabel(name: string, args?: string): string {
+  if (name === 'generate_image' && args) {
+    try {
+      const parsed = JSON.parse(args)
+      if (Array.isArray(parsed?.image_paths) && parsed.image_paths.length > 0) return '生成图片（参考改图）'
+    } catch {}
+  }
   return ({
     execute_python: '运行分析脚本',
     generate_image: '生成图片',
