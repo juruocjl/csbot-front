@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { newTrace, applyTrace, toolDisplayLabel } from '../src/utils/aiTrace.ts'
+import { newTrace, applyTrace, toolDisplayLabel, formatUsageSummary } from '../src/utils/aiTrace.ts'
 
 const reasoning = (attempt, text) => ({ type: 'reasoning_delta', attempt, text })
 const call = id => ({ type: 'tool/call', time: 1000, data: { call: { id, name: 'execute_python', arguments: { code: 'print(1)' } } } })
@@ -84,4 +84,34 @@ test('reference-edit image calls get their own label and text-to-image stays unc
   const t = newTrace()
   applyTrace(t, { type: 'tool/call', time: 1, data: { call: { id: 'edit', name: 'generate_image', arguments: { prompt: '改成水彩风', image_paths: ['/tmp/ref.png'] } } } })
   assert.equal(toolDisplayLabel(t.tools.edit.name, t.tools.edit.args), '生成图片（参考改图）')
+})
+
+const usage = (over = {}) => ({ calls: 2, input_tokens: 3200, uncached_input_tokens: 1152, cached_tokens: 2048, output_tokens: 180, cost_usd: 0.0043, cache_hit_pct: 64, ...over })
+
+test('usage events feed the shared trace and render a compact billing line', () => {
+  const t = newTrace()
+  assert.equal(t.usage, null)
+  assert.equal(formatUsageSummary(null), '')
+  assert.equal(formatUsageSummary(undefined), '')
+  assert.equal(formatUsageSummary(usage({ calls: 0 })), '')
+
+  applyTrace(t, { type: 'usage', usage: usage() })
+  assert.equal(t.usage.calls, 2)
+  assert.equal(formatUsageSummary(t.usage), 'Token 入 3,200（缓存 64.0%）· 出 180 · $0.0043')
+  // A later usage event replaces the previous summary instead of duplicating.
+  applyTrace(t, { type: 'usage', usage: usage({ calls: 3, input_tokens: 1200, cached_tokens: 0, output_tokens: 40, cost_usd: 1.5, cache_hit_pct: 0 }) })
+  assert.equal(formatUsageSummary(t.usage), 'Token 入 1,200 · 出 40 · $1.50')
+  // Missing usage keeps the previous value; unrelated events never clear it.
+  applyTrace(t, { type: 'usage' })
+  applyTrace(t, { type: 'final', text: '完成' })
+  assert.equal(t.usage.calls, 3)
+})
+
+test('usage formatting tolerates tiny, zero and malformed costs', () => {
+  assert.equal(formatUsageSummary(usage({ cost_usd: 0.00001234, cache_hit_pct: 12.34 })), 'Token 入 3,200（缓存 12.3%）· 出 180 · $0.000012')
+  assert.equal(formatUsageSummary(usage({ cost_usd: 0.5, cached_tokens: 0 })), 'Token 入 3,200 · 出 180 · $0.500')
+  assert.equal(formatUsageSummary(usage({ input_tokens: 0, output_tokens: 0, cached_tokens: 0, cost_usd: 0 })), 'Token 入 0 · 出 0 · $0.0000')
+  const t = newTrace()
+  applyTrace(t, { type: 'usage', usage: { calls: 1 } })
+  assert.equal(formatUsageSummary(t.usage), 'Token 入 0 · 出 0 · $0.0000')
 })

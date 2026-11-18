@@ -3,6 +3,15 @@ export type TraceStep =
   | { kind: 'tool'; id: string }
   | { kind: 'memory'; text: string }
   | { kind: 'supplement'; text: string; delivery: string }
+export interface UsageSummary {
+  calls: number
+  input_tokens: number
+  uncached_input_tokens: number
+  cached_tokens: number
+  output_tokens: number
+  cost_usd: number
+  cache_hit_pct: number
+}
 export interface Trace {
   timeline: TraceStep[]
   streamedBlocks: Record<string, boolean>
@@ -12,8 +21,29 @@ export interface Trace {
   supplements: Array<{ text: string; delivery: string }>
   contexts: Array<{ id: string; title: string; text: string; time: number }>
   status: string; response: string; request: string; channel: string; notice: string; thinkingEnabled?: boolean
+  usage?: UsageSummary | null
 }
-export const newTrace = (): Trace => ({ timeline: [], streamedBlocks: {}, attempts: {}, tools: {}, images: [], supplements: [], contexts: [], status: 'queued', response: '', request: '', channel: '', notice: '' })
+export const newTrace = (): Trace => ({ timeline: [], streamedBlocks: {}, attempts: {}, tools: {}, images: [], supplements: [], contexts: [], status: 'queued', response: '', request: '', channel: '', notice: '', usage: null })
+const tokenText = (value: unknown): string => {
+  const numeric = Math.max(0, Math.round(Number(value) || 0))
+  return numeric.toLocaleString('en-US')
+}
+const costText = (value: unknown): string => {
+  const numeric = Math.max(0, Number(value) || 0)
+  if (numeric <= 0) return '0.0000'
+  if (numeric < 0.0001) return numeric.toFixed(6)
+  if (numeric < 0.01) return numeric.toFixed(4)
+  if (numeric < 1) return numeric.toFixed(3)
+  return numeric.toFixed(2)
+}
+// Compact one-line billing hint for the reply header; empty when nothing ran.
+export function formatUsageSummary(u?: UsageSummary | null): string {
+  if (!u || !u.calls) return ''
+  const cached = Math.max(0, Math.round(Number(u.cached_tokens) || 0))
+  const pct = Number(u.cache_hit_pct)
+  const suffix = cached > 0 ? `（缓存 ${(Number.isFinite(pct) ? pct : 0).toFixed(1)}%）` : ''
+  return `Token 入 ${tokenText(u.input_tokens)}${suffix}${cached > 0 ? '·' : ' ·'} 出 ${tokenText(u.output_tokens)} · $${costText(u.cost_usd)}`
+}
 export function toolDisplayLabel(name: string, args?: string): string {
   if (name === 'generate_image' && args) {
     try {
@@ -72,6 +102,7 @@ export function applyTrace(t: Trace, e: any) {
     t.timeline.push({ kind: 'supplement', text: e.text, delivery: e.delivery })
   }
   if (e.type === 'image' && !t.images.some(i => i.id === e.id)) t.images.push({ id: e.id, caption: e.caption })
+  if (e.type === 'usage' && e.usage) t.usage = e.usage
   if (e.type === 'reasoning_delta') {
     appendText(t, 'reasoning', e.attempt, 'guard', e.text)
   }

@@ -32,7 +32,7 @@
           </details>
         </details>
         <div class="reply">
-          <div class="reply-header"><strong>AI</strong><span class="status" :class="turn.trace.status">{{ statusLabel(turn.trace.status) }}</span><span v-if="turn.connection" class="connection">{{ turn.connection }}</span></div>
+          <div class="reply-header"><strong>AI</strong><span class="status" :class="turn.trace.status">{{ statusLabel(turn.trace.status) }}</span><span v-if="formatUsageSummary(turn.trace.usage)" class="muted">{{ formatUsageSummary(turn.trace.usage) }}</span><span v-if="turn.connection" class="connection">{{ turn.connection }}</span></div>
           <details class="process" @toggle="loadProcess(turn, $event)">
             <summary>{{ processLabel(turn) }}</summary>
             <p v-if="turn.trace.thinkingEnabled === false" class="muted">本轮未启用模型思考输出。</p>
@@ -67,7 +67,7 @@ import { computed, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { aiAPI, type AIConversationRecord } from '../api'
 import { streamAI, generatedImage } from '../api/aiStream'
-import { applyTrace, newTrace, toolDisplayLabel, type Trace } from '../utils/aiTrace'
+import { applyTrace, formatUsageSummary, newTrace, toolDisplayLabel, type Trace } from '../utils/aiTrace'
 import { resolveAIChatId } from '../utils/aiChatId'
 interface Turn { id: string; trace: Trace; cursor: number; loaded: boolean; connection: string; contextLoaded: boolean; contextBusy: boolean; contextError: string; contextOrigin: string; contextTruncated: boolean }
 const route=useRoute(),router=useRouter()
@@ -103,8 +103,8 @@ async function connect(t:Turn, retry=0) {
   try {
     await streamAI(t.id,t.cursor,controller.signal,(id,type,data)=>{
       if(current!==generation)return
-      if(type==='ready'){t.connection='';t.trace.channel=data.channel;t.trace.request=data.request;for(const img of data.images || [])applyTrace(t.trace,{type:'image',...img});void images(t);return}
-      if(type==='done'){t.trace.status=data.status;if(data.response)t.trace.response=data.response;t.loaded=true;if(!data.hasEvents)void legacy(t).catch(()=>{t.trace.notice='历史详情暂时无法读取。'});return}
+      if(type==='ready'){t.connection='';t.trace.channel=data.channel;t.trace.request=data.request;for(const img of data.images || [])applyTrace(t.trace,{type:'image',...img});if(data.usage)applyTrace(t.trace,{type:'usage',usage:data.usage});void images(t);return}
+      if(type==='done'){t.trace.status=data.status;if(data.response)t.trace.response=data.response;if(data.usage)applyTrace(t.trace,{type:'usage',usage:data.usage});t.loaded=true;if(!data.hasEvents)void legacy(t).catch(()=>{t.trace.notice='历史详情暂时无法读取。'});return}
       if(id<=t.cursor)return
       applyTrace(t.trace,data);t.cursor=id
       if(data.type==='image')void images(t)
