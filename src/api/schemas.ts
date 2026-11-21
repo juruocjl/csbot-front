@@ -385,7 +385,10 @@ export const RankItemSchema = z.object({
   steamId: z.string(),
   nickname: z.string(),
   value: z.number(),
-  count: z.number()
+  count: z.number(),
+  rawPvpScore: z.number().int().nullable().optional(),
+  pvpStars: z.number().int().nullable().optional(),
+  badgeText: z.string().nullable().optional()
 })
 
 export const RankResponseSchema = z.object({

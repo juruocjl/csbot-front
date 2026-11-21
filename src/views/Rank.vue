@@ -40,6 +40,7 @@
              {{ currentRankConfig?.description || queryRankName }} ({{ queryTimeType }})
           </h1>
           <div>共 <strong>{{ rankData.players.length }}</strong> 个玩家</div>
+          <div v-if="eloRankNote" class="rank-note">{{ eloRankNote }}</div>
         </div>
 
         <el-table :data="rankData.players" style="width: 100%">
@@ -105,9 +106,12 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="数值" align="center" width="100">
+          <el-table-column label="数值" align="center" :width="isEloRank(queryRankName) ? 165 : 100">
             <template #default="{ row }">
-              <div class="value-text">{{ formatValue(row.value) }}</div>
+              <div class="value-cell">
+                <span class="value-text">{{ formatValue(row.value) }}</span>
+                <span v-if="getRowBadgeText(row)" class="s-rank-badge">{{ getRowBadgeText(row) }}</span>
+              </div>
             </template>
           </el-table-column>
           <el-table-column label="场次" align="center" width="80">
@@ -130,6 +134,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { configAPI, rankAPI, type RankConfigItem, type RankResponse } from '../api'
 import { ElMessage } from 'element-plus'
+import { formatRankBadgeText, getEloRankNote, isEloRank } from '../utils/eloRank'
 
 const route = useRoute()
 const router = useRouter()
@@ -335,6 +340,13 @@ const formatValue = (value: number): string => {
 const currentRankConfig = computed<RankConfigItem | undefined>(() => {
   return rankConfigs.value.find(c => c.name === queryRankName.value)
 })
+
+// ELO 榜 S 段位折算规则提示与 `S ★N` 徽标
+const eloRankNote = computed<string | null>(() => getEloRankNote(queryRankName.value))
+
+const getRowBadgeText = (row: RankResponse['players'][number]): string | null => {
+  return formatRankBadgeText(queryRankName.value, row)
+}
 </script>
 
 <style scoped>
@@ -481,6 +493,12 @@ const currentRankConfig = computed<RankConfigItem | undefined>(() => {
   font-weight: 600;
 }
 
+.rank-note {
+  margin-top: 0.25rem;
+  color: #9ca3af;
+  font-size: 0.8125rem;
+}
+
 .value-bar-container {
   display: flex;
   align-items: stretch;
@@ -545,6 +563,29 @@ const currentRankConfig = computed<RankConfigItem | undefined>(() => {
   height: 100%;
   border-radius: 3px;
   transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.value-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.s-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  white-space: nowrap;
 }
 
 .value-text {
