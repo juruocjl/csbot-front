@@ -410,6 +410,7 @@ export const MajorHomeworkPickSchema = z.object({
 export const MajorHomeworkRankItemSchema = z.object({
   uid: z.string(),
   avatar: z.string(),
+  displayName: z.string().nullable().optional(),
   probability: z.number().nullable(),
   expected: z.number().nullable(),
   score: z.number().nullable().optional(),
@@ -446,6 +447,7 @@ export const MajorHomeworkPersonalResponseSchema = z.object({
   stage: z.string(),
   uid: z.string(),
   avatar: z.string(),
+  displayName: z.string().nullable().optional(),
   categories: z.array(z.string()),
   rows: z.array(MajorHomeworkPersonalRowSchema)
 })

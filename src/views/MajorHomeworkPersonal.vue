@@ -7,7 +7,8 @@
             v-if="personalData?.avatar"
             class="detail-avatar"
             :src="personalData.avatar"
-            alt=""
+            :alt="personalData.displayName || personalData.uid"
+            :title="personalData.displayName || personalData.uid"
             loading="eager"
           >
           <h2>{{ pageHeading }}</h2>

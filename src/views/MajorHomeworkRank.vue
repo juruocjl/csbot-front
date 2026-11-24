@@ -57,8 +57,8 @@
           </tr>
           <tr v-for="player in rankData.players" :key="player.uid">
             <td class="avatar-cell">
-              <button class="avatar-button" :title="`查看 ${player.uid} 的作业`" @click="openPersonal(player.uid)">
-                <img class="avatar" :src="player.avatar" alt="" loading="lazy">
+              <button class="avatar-button" :title="`查看 ${player.displayName || player.uid} 的作业`" @click="openPersonal(player.uid)">
+                <img class="avatar" :src="player.avatar" :alt="player.displayName || player.uid" :title="player.displayName || player.uid" loading="lazy">
               </button>
             </td>
             <td class="rate-cell">
