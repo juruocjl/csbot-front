@@ -12,6 +12,13 @@
             loading="eager"
           >
           <h2>{{ pageHeading }}</h2>
+          <span
+            v-if="personalData?.isStarred"
+            class="starred-tag"
+            title="未购通行证，不占作业排名名次"
+          >
+            🌟 打星（未购通行证）
+          </span>
         </div>
         <p>{{ personalData?.stage || 'loading' }}</p>
       </div>
@@ -213,6 +220,19 @@ watch(targetUid, () => {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.starred-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border: 1px solid #fcd34d;
+  border-radius: 999px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .title-block h2 {

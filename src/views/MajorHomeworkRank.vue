@@ -21,6 +21,7 @@
       <table v-if="rankData && rankData.players.length" class="homework-table">
         <thead>
           <tr>
+            <th class="rank-col">排名</th>
             <th class="avatar-col">头像</th>
             <th class="rate-col">{{ isPlayoffs ? '轮次结果' : '正确率' }}</th>
             <th class="choices-col">
@@ -38,6 +39,7 @@
         </thead>
         <tbody>
           <tr class="result-row">
+            <td class="rank-cell result-rank">-</td>
             <td class="avatar-cell result-label">赛果</td>
             <td class="rate-cell result-rate">-</td>
             <td class="choices-cell">
@@ -55,7 +57,14 @@
               </div>
             </td>
           </tr>
-          <tr v-for="player in rankData.players" :key="player.uid">
+          <tr v-for="(player, index) in rankData.players" :key="player.uid">
+            <td
+              class="rank-cell"
+              :class="{ 'is-starred': rankCells[index]?.isStarred }"
+              :title="rankCells[index]?.isStarred ? '打星（未购通行证，不占名次）' : `第 ${rankCells[index]?.label} 名`"
+            >
+              {{ rankCells[index]?.label }}
+            </td>
             <td class="avatar-cell">
               <button class="avatar-button" :title="`查看 ${player.displayName || player.uid} 的作业`" @click="openPersonal(player.uid)">
                 <img class="avatar" :src="player.avatar" :alt="player.displayName || player.uid" :title="player.displayName || player.uid" loading="lazy">
@@ -105,12 +114,14 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { RefreshCw, UserRound } from 'lucide-vue-next'
 import { majorHomeworkAPI, type MajorHomeworkPick, type MajorHomeworkRankItem, type MajorHomeworkRankResponse } from '../api'
+import { resolveMajorHomeworkRankCells } from '../utils/majorHomeworkRank'
 
 const router = useRouter()
 const rankData = ref<MajorHomeworkRankResponse | null>(null)
 const loading = ref<boolean>(false)
 const error = ref<string>('')
 const isPlayoffs = computed<boolean>(() => rankData.value?.stageType === 'playoffs')
+const rankCells = computed(() => resolveMajorHomeworkRankCells(rankData.value?.players || []))
 type PickStatus = 'correct' | 'wrong' | 'pending'
 
 const loadRankData = async (): Promise<void> => {
@@ -318,6 +329,29 @@ onMounted(loadRankData)
 
 .homework-table tbody tr:last-child td {
   border-bottom: 0;
+}
+
+.rank-col {
+  width: 52px;
+  text-align: center;
+}
+
+.rank-cell {
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #334155;
+}
+
+.rank-cell.is-starred {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.result-rank {
+  color: #94a3b8;
+  font-weight: 600;
 }
 
 .avatar-col {
